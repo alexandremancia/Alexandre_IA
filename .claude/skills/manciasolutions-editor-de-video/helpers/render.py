@@ -825,7 +825,18 @@ def build_master_srt(edl: dict, edit_dir: Path, out_path: Path) -> None:
 # Social-media standard: -14 LUFS integrated, -1 dBTP peak, LRA 11 LU.
 # Matches YouTube / Instagram / TikTok / X / LinkedIn normalization targets.
 LOUDNORM_I = -14.0
-LOUDNORM_TP = -1.0
+# -1.5 e não -1.0: o loudnorm acerta o teto com precisão no sinal descomprimido,
+# mas o AAC que vem depois faz overshoot. Medido neste repo, mirando TP=-1:
+#
+#     em PCM            -1.00 dBTP   (exato)
+#     AAC 128k          -0.62 dBTP
+#     AAC 192k          +0.30 dBTP   (acima de 0 — clipa no player)
+#     mirando TP=-1.5   -1.05 dBTP   (chega onde se queria)
+#
+# Meio decibel de margem custa meio decibel de volume e evita distorção na
+# reprodução. Plataforma nenhuma recompensa entregar mais alto: todas
+# normalizam para perto de -14 LUFS de qualquer jeito.
+LOUDNORM_TP = -1.5
 LOUDNORM_LRA = 11.0
 
 
@@ -1159,7 +1170,8 @@ def main() -> None:
         # Composite to a temp file, then run loudnorm → final output
         tmp_composite = out_path.with_suffix(".prenorm.mp4")
         build_final_composite(base_path, overlays, subs_path, tmp_composite, edit_dir, rate=out_rate)
-        print("loudness normalization → social-ready (-14 LUFS / -1 dBTP / LRA 11)")
+        print(f"loudness normalization → social-ready "
+              f"({LOUDNORM_I:g} LUFS / {LOUDNORM_TP:g} dBTP / LRA {LOUDNORM_LRA:g})")
         apply_loudnorm_two_pass(tmp_composite, out_path, preview=args.draft)
         tmp_composite.unlink(missing_ok=True)
 

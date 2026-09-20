@@ -113,3 +113,42 @@ class TestMerge:
 
     def test_lista_vazia(self):
         assert autocut.merge_adjacent([], 0.12) == []
+
+
+class TestPrenderNaFonte:
+    """Transcript pode reivindicar tempo que o arquivo não tem.
+
+    ASR alucina além do fim do áudio, e transcript em cache envelhece se a
+    fonte for recortada depois. Sem prender, o EDL pede material inexistente,
+    o ffmpeg entrega o que tem, e o render sai curto — sem erro, só um QC
+    reclamando de duração lá na frente.
+    """
+
+    def test_faixa_alem_do_fim_e_cortada(self):
+        ranges = [(0.0, 5.0, ["a"]), (8.0, 12.0, ["b"])]
+        out, podado = autocut.clamp_to_source(ranges, 10.0, "x")
+        assert out[-1][1] == 10.0
+        assert podado == pytest.approx(2.0)
+
+    def test_faixa_inteiramente_alem_do_fim_some(self):
+        ranges = [(0.0, 5.0, ["a"]), (12.0, 15.0, ["b"])]
+        out, podado = autocut.clamp_to_source(ranges, 10.0, "x")
+        assert len(out) == 1
+        assert podado == pytest.approx(3.0)
+
+    def test_faixas_dentro_do_arquivo_passam_intactas(self):
+        ranges = [(0.0, 5.0, ["a"]), (6.0, 9.0, ["b"])]
+        out, podado = autocut.clamp_to_source(ranges, 10.0, "x")
+        assert out == ranges
+        assert podado == 0.0
+
+    def test_duracao_desconhecida_nao_mexe_em_nada(self):
+        """ffprobe falhou: melhor não podar do que podar errado."""
+        ranges = [(0.0, 5.0, ["a"]), (12.0, 15.0, ["b"])]
+        out, podado = autocut.clamp_to_source(ranges, 0.0, "x")
+        assert out == ranges and podado == 0.0
+
+    def test_faixa_degenerada_e_descartada(self):
+        ranges = [(10.0, 10.0, ["a"])]
+        out, _ = autocut.clamp_to_source(ranges, 10.0, "x")
+        assert out == []

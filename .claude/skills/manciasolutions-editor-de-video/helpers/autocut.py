@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -170,6 +171,43 @@ def build_keep_ranges(
     return padded, stats
 
 
+def probe_duration(path: Path) -> float:
+    """Duração real da fonte, ou 0.0 se não der para ler."""
+    proc = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+         "-of", "csv=p=0", str(path)],
+        capture_output=True, text=True,
+    )
+    try:
+        return float(proc.stdout.strip())
+    except (ValueError, AttributeError):
+        return 0.0
+
+
+def clamp_to_source(ranges, duration: float, stem: str):
+    """Prende as faixas ao fim do arquivo. Devolve (faixas, segundos podados).
+
+    Transcript pode reivindicar tempo que não existe: ASR alucina além do fim
+    do áudio, e um transcript em cache envelhece se a fonte for recortada
+    depois. O EDL então pede material inexistente, o ffmpeg entrega o que tem,
+    e o render sai mais curto que o planejado — sem erro nenhum, só um QC
+    reclamando de duração lá na frente.
+    """
+    if duration <= 0:
+        return ranges, 0.0
+    saida, podado = [], 0.0
+    for start, end, ws in ranges:
+        if start >= duration:
+            podado += end - start
+            continue
+        if end > duration:
+            podado += end - duration
+            end = duration
+        if end - start > 0:
+            saida.append((start, end, ws))
+    return saida, podado
+
+
 def merge_adjacent(ranges: list[tuple[float, float, list[str]]], min_gap: float = 0.12):
     """Junta faixas separadas por menos que min_gap — corte imperceptível não vale um corte."""
     if not ranges:
@@ -204,6 +242,15 @@ def process_source(
         drop_breaths=not args.keep_breaths,
     )
     ranges = merge_adjacent(ranges, args.min_gap)
+
+    dur = probe_duration(Path(source_path))
+    ranges, podado = clamp_to_source(ranges, dur, stem)
+    if podado > 0.01:
+        print(f"  aviso: {stem} — o transcript reivindica {podado:.2f}s além do fim do "
+              f"arquivo ({dur:.2f}s). Faixas presas ao fim.", file=sys.stderr)
+        print(f"         Se a fonte foi recortada depois de transcrita, apague "
+              f"transcripts/{stem}.json e transcreva de novo.", file=sys.stderr)
+
     ranges = [r for r in ranges if (r[1] - r[0]) >= args.min_segment]
 
     segs = [

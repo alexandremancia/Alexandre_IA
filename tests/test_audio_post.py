@@ -85,3 +85,55 @@ class TestGrafoDeMusica:
     def test_ganho_da_musica_entra_em_db(self):
         g = audio_post.build_music_graph(-18, True, 8.0, 1.0, 2.0, 30.0)
         assert "volume=-18dB" in g
+
+
+class TestCadeiaLoud:
+    """Atingir o alvo de loudness é questão de ataque, não de limiter.
+
+    Medido neste repo, normalizando para I=-14:TP=-1.5 depois de cada cadeia,
+    numa fala com razão pico/loudness de 17.1 dB:
+
+        sem tratamento                  -20.5 LUFS
+        clean (ataque 8ms, ratio 3)     -15.2 LUFS
+        alimiter sozinho                -15.5 LUFS
+        loud  (ataque 1ms, ratio 6)     -14.1 LUFS  <- no alvo
+    """
+
+    def test_existe_uma_cadeia_para_atingir_o_alvo(self):
+        assert "loud" in audio_post.CHAINS
+
+    def test_ataque_rapido_e_o_que_distingue_de_clean(self):
+        import re
+        def attack(chain):
+            m = re.search(r"acompressor=[^,]*attack=(\d+(?:\.\d+)?)", chain)
+            return float(m.group(1)) if m else None
+        assert attack(audio_post.CHAINS["loud"]) < attack(audio_post.CHAINS["clean"])
+
+    def test_ratio_maior_que_clean(self):
+        import re
+        def ratio(chain):
+            m = re.search(r"acompressor=[^,]*ratio=(\d+(?:\.\d+)?)", chain)
+            return float(m.group(1)) if m else None
+        assert ratio(audio_post.CHAINS["loud"]) > ratio(audio_post.CHAINS["clean"])
+
+    def test_mantem_o_tratamento_de_voz(self):
+        # não é só compressão: continua sendo uma cadeia de voz completa
+        for peca in ("highpass", "deesser", "equalizer"):
+            assert peca in audio_post.CHAINS["loud"]
+
+
+class TestTetoDePico:
+    """O AAC faz overshoot depois da normalização.
+
+    Medido: mirando TP=-1, o arquivo sai a -1.00 dBTP em PCM, -0.62 em AAC
+    128k e +0.30 em AAC 192k — este último clipa no player. Mirar -1.5 entrega
+    -1.05, que é onde se queria chegar.
+    """
+
+    def test_alvos_deixam_margem_para_o_codec(self):
+        for nome, (_, tp, _) in audio_post.TARGETS.items():
+            assert tp <= -1.5, f"{nome}: teto {tp} não absorve overshoot do AAC"
+
+    def test_broadcast_e_cinema_tem_teto_ainda_mais_baixo(self):
+        assert audio_post.TARGETS["broadcast"][1] <= -2.0
+        assert audio_post.TARGETS["cinema"][1] <= -3.0

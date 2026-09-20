@@ -304,6 +304,10 @@ def export_frames(path: Path, bounds: list[float], out_dir: Path, window: float 
 TARGETS = {"tiktok": -14.0, "reels": -14.0, "shorts": -14.0, "youtube": -14.0,
            "instagram": -14.0, "podcast": -16.0, "broadcast": -23.0, "cinema": -27.0}
 
+# Teto de pico real da entrega. -1.0 é o limite em que o player começa a clipar;
+# o alvo do render é -1.5 para absorver o overshoot do AAC.
+TP_CEILING = -1.0
+
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="QC automatizado do render")
@@ -393,10 +397,23 @@ def main() -> None:
             want = TARGETS[args.target]
             delta = i - want
             level = "ok" if abs(delta) <= 1.0 else "warn"
-            checks.append(Check(level, "loudness",
-                                f"{i:.1f} LUFS (alvo {want} para {args.target}, Δ {delta:+.1f})"))
-            if tp > -1.0:
-                checks.append(Check("warn", "pico real", f"{tp:.1f} dBTP — risco de clipping"))
+            detalhe = f"{i:.1f} LUFS (alvo {want} para {args.target}, Δ {delta:+.1f})"
+            if level == "warn" and delta < 0 and tp >= TP_CEILING - 0.6:
+                # Não é desleixo do normalizador: o teto de pico é que prende.
+                # Material com razão pico/loudness alta não chega ao alvo só com
+                # ganho, e mandar "aumente o volume" faria o editor clipar. O que
+                # resolve é compressão de ATAQUE RÁPIDO antes da normalização —
+                # medido: cadeia `clean` (8ms) para em -15.2, `loud` (1ms)
+                # chega a -14.1. Limiter sozinho não resolve.
+                detalhe += (f" — limitado pelo teto de pico (PLR {tp - i:.1f} dB), "
+                            f"não por erro de normalização. Para chegar ao alvo: "
+                            f"audio_post.py --clean loud --target {args.target}, "
+                            f"ao custo de dinâmica")
+            checks.append(Check(level, "loudness", detalhe))
+            if tp > TP_CEILING:
+                checks.append(Check("warn", "pico real",
+                                    f"{tp:.1f} dBTP acima do teto de {TP_CEILING} — "
+                                    f"risco de clipping no player"))
 
     frames = 0
     if bounds and not args.no_frames:

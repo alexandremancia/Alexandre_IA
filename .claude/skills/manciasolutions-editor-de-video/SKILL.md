@@ -204,8 +204,10 @@ audio_post.py voz.mp4 -o limpa.mp4 --clean --target tiktok
 audio_post.py corte.mp4 -o com_trilha.mp4 --music t.mp3 --duck --music-db -18
 ```
 
-- Cadeias: `gentle` (fonte já boa), `clean` (padrão), `rescue` (sala ruim, ar-condicionado), `phone` (efeito).
+- Cadeias: `gentle` (fonte já boa), `clean` (padrão), `rescue` (sala ruim, ar-condicionado), `loud` (quando o alvo de loudness não é atingido), `phone` (efeito).
 - Alvos: −14 LUFS para rede social e YouTube, −16 podcast, −23 broadcast. Entregar mais alto só faz a plataforma abaixar de volta com a dinâmica já esmagada.
+- Teto de pico −1.5 dBTP, não −1.0: o AAC faz overshoot depois da normalização (mirar −1 entrega até +0.3 dBTP, que clipa no player).
+- Loudness 1–2 LU abaixo do alvo com o pico no teto **não é erro de normalização** — é a razão pico/loudness do material. Só compressão de ataque rápido (cadeia `loud`) resolve, ao custo de dinâmica. Em material que vive de variação de intensidade, prefira entregar abaixo do alvo.
 - Ducking (`sidechaincompress`): a voz vira cadeia lateral do compressor na música. `--music-db -20` com `--duck` é o ponto de partida; −24 se a fala for baixa.
 - Ordem é Regra Dura 14: limpeza → loudnorm da voz → trilha com ducking. O `render.py` faz isso sozinho se o EDL tiver um bloco `music`.
 

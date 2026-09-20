@@ -20,6 +20,7 @@ Três números decidem o que fazer:
 | Lapela/cabine, som já bom | `gentle` | Só controla dinâmica |
 | Gravação normal de escritório | `clean` | Padrão |
 | Chiado, ar-condicionado, sala com eco | `rescue` | `afftdn` forte + `anlmdn` |
+| Não chega ao alvo de loudness | `loud` | Ataque rápido; custa dinâmica |
 | Efeito de telefone/rádio | `phone` | Criativo, não corretivo |
 
 `--print-chain` mostra o filtro sem renderizar. `--list-chains` mostra todos.
@@ -46,6 +47,42 @@ alguém fala, a trilha abaixa sozinha e volta no silêncio.
 Ordem é Regra Dura 14: limpeza → loudnorm da voz → trilha com ducking. Nunca some a música
 antes de normalizar a voz: a medição de loudness passa a ver música, não fala, e o resultado
 fica com a voz baixa demais.
+
+## Quando o alvo de loudness não é atingido
+
+Sintoma: o `qc.py` diz que a loudness ficou 1–2 LU abaixo do alvo e o pico real está
+encostado no teto. **Não é erro de normalização** — é a razão pico/loudness (PLR) do
+material. Com PLR alta, o teto de pico prende o ganho antes de a loudness chegar ao alvo.
+
+Medido neste repo, numa fala de PLR 17.1 dB, normalizando para `I=-14:TP=-1.5` depois de
+cada tratamento:
+
+| tratamento | resultado | PLR |
+|---|---|---|
+| nenhum | −20.5 LUFS | 17.1 dB |
+| `clean` (ataque 8ms, ratio 3) | −15.2 LUFS | 13.7 dB |
+| `alimiter` sozinho | −15.5 LUFS | 14.0 dB |
+| **`loud` (ataque 1ms, ratio 6)** | **−14.1 LUFS** | **12.6 dB** |
+
+O que resolve é **ataque rápido**, não limiter: com 8 ms o compressor perde o transiente
+que define o pico. Limiter sozinho corta o topo mas não muda a relação média.
+
+O custo é dinâmica. Em material que depende de variação de intensidade — música,
+documentário, atuação — prefira entregar 1 LU abaixo do alvo a esmagar a faixa.
+
+## Por que o teto é −1.5 e não −1.0
+
+O AAC faz overshoot depois da normalização. Medido, mirando `TP=-1`:
+
+| entrega | pico real |
+|---|---|
+| PCM (sem codec) | −1.00 dBTP (exato) |
+| AAC 128k | −0.62 dBTP |
+| AAC 192k | **+0.30 dBTP** (clipa no player) |
+| mirando `TP=-1.5` → AAC | −1.05 dBTP |
+
+Meio decibel de margem custa meio decibel de volume e evita distorção na reprodução.
+Nenhuma plataforma recompensa entregar mais alto: todas normalizam para perto de −14 LUFS.
 
 ## Loudnorm em dois passes
 

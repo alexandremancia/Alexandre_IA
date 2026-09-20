@@ -26,14 +26,19 @@ from pathlib import Path
 
 # Alvos de loudness. Streaming normaliza para perto de -14 LUFS; entregar mais
 # alto só faz a plataforma abaixar de volta, com o dinamismo já esmagado.
+# (loudness integrada, teto de pico real, faixa dinâmica)
+#
+# O teto é -1.5 e não -1.0 porque o AAC faz overshoot depois da normalização.
+# Medido neste repo, mirando TP=-1: -1.00 dBTP em PCM, -0.62 em AAC 128k e
+# +0.30 em AAC 192k — este último clipa no player. Mirar -1.5 entrega -1.05.
 TARGETS = {
-    "tiktok":    (-14.0, -1.0, 11.0),
-    "reels":     (-14.0, -1.0, 11.0),
-    "shorts":    (-14.0, -1.0, 11.0),
-    "youtube":   (-14.0, -1.0, 11.0),
-    "instagram": (-14.0, -1.0, 11.0),
-    "podcast":   (-16.0, -1.0, 11.0),
-    "spotify":   (-14.0, -1.0, 11.0),
+    "tiktok":    (-14.0, -1.5, 11.0),
+    "reels":     (-14.0, -1.5, 11.0),
+    "shorts":    (-14.0, -1.5, 11.0),
+    "youtube":   (-14.0, -1.5, 11.0),
+    "instagram": (-14.0, -1.5, 11.0),
+    "podcast":   (-16.0, -1.5, 11.0),
+    "spotify":   (-14.0, -1.5, 11.0),
     "broadcast": (-23.0, -2.0, 7.0),   # EBU R128
     "cinema":    (-27.0, -3.0, 15.0),
 }
@@ -66,6 +71,29 @@ CHAINS = {
         "highpass=f=60,"
         "acompressor=threshold=-16dB:ratio=2:attack=10:release=200:makeup=1"
     ),
+    # Para quando o alvo de loudness TEM de ser atingido.
+    #
+    # Material com razão pico/loudness (PLR) alta não chega a -14 LUFS só com
+    # normalização: o teto de pico prende antes. Medido neste repo, numa fala
+    # de PLR 17.1 dB, normalizando para I=-14:TP=-1.5 depois de cada cadeia:
+    #
+    #     sem tratamento                        -20.5 LUFS   PLR 17.1
+    #     clean (ataque 8ms, ratio 3)           -15.2 LUFS   PLR 13.7
+    #     alimiter sozinho                      -15.5 LUFS   PLR 14.0
+    #     esta cadeia (ataque 1ms, ratio 6)     -14.1 LUFS   PLR 12.6  ← no alvo
+    #
+    # O que resolve é ATAQUE RÁPIDO, não limiter: com 8ms o compressor perde o
+    # transiente que define o pico. O custo é dinâmica — não use em material
+    # que depende de variação de intensidade.
+    "loud": (
+        "highpass=f=80,"
+        "afftdn=nf=-25:nt=w,"
+        "equalizer=f=250:t=q:w=1.2:g=-2,"
+        "equalizer=f=3200:t=q:w=1.5:g=2,"
+        "deesser=i=0.4:m=0.5:f=0.5,"
+        "acompressor=threshold=-24dB:ratio=6:attack=1:release=80:makeup=2"
+    ),
+
     # Telefone/rádio, para efeito criativo.
     "phone": "highpass=f=400,lowpass=f=3400,acompressor=threshold=-14dB:ratio=6",
     "none": "",
