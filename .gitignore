@@ -1,0 +1,30 @@
+# Saídas de sessão de edição — nunca versionadas (Regra Dura 12)
+edit/
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.mp3
+*.wav
+*.m4a
+*.srt
+*.ass
+*.crop.cmd
+
+# Credenciais
+.env
+
+# Modelos baixados sob demanda
+*.onnx
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# SO
+.DS_Store
+Thumbs.db

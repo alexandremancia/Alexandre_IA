@@ -1,0 +1,28 @@
+ManciaSolutions — Editor de Vídeo
+=================================
+
+Esta skill é derivada de video-use (https://github.com/browser-use/video-use),
+licenciado sob MIT. A licença original está em LICENSE-video-use.
+
+Herdado do video-use, com modificações:
+  helpers/transcribe.py        + fallback local com faster-whisper
+  helpers/transcribe_batch.py  + seleção de motor, ajuste de workers no modo local
+  helpers/pack_transcripts.py  sem alterações
+  helpers/timeline_view.py     sem alterações
+  helpers/grade.py             + presets vivid_social, skin_safe, flat_log,
+                                 cool_tech, bw_film; + suporte a LUT .cube
+  helpers/render.py            + punch-in (estático e em rampa), speed ramp,
+                                 transições xfade com handles, overlays
+                                 posicionáveis, legenda .ass, trilha com ducking
+
+Escrito para esta skill:
+  helpers/captions.py          legendas ASS animadas (karaoke, pop, hormozi, doc, clean, box)
+  helpers/autocut.py           corte proposto por silêncio, filler, falso começo, respiração
+  helpers/beats.py             BPM, grade de batidas, snap de EDL (librosa + fallback numpy)
+  helpers/audio_post.py        limpeza de voz, ducking, loudness por plataforma
+  helpers/reframe.py           auto-reframe com rastreio de sujeito e trajetória suavizada
+  helpers/qc.py                QC automatizado do render
+  helpers/thumbnail.py         seleção de frame e composição de capa
+
+A estrutura do SKILL.md (princípios, regras duras, processo, anti-patterns) segue
+o formato do video-use, traduzida e estendida.

@@ -1,0 +1,371 @@
+"""Transcribe a video with ElevenLabs Scribe.
+
+Extracts mono 16kHz audio via ffmpeg, uploads to Scribe with verbatim +
+diarize + audio events + word-level timestamps, writes the full response
+to <edit_dir>/transcripts/<video_stem>.json.
+
+Cached: if the output file already exists, the upload is skipped.
+
+Usage:
+    python helpers/transcribe.py <video_path>
+    python helpers/transcribe.py <video_path> --edit-dir /custom/edit
+    python helpers/transcribe.py <video_path> --language en
+    python helpers/transcribe.py <video_path> --num-speakers 2
+"""
+
+from __future__ import annotations
+
+import argparse
+import array
+import json
+import math
+import os
+import subprocess
+import sys
+import tempfile
+import time
+import wave
+from pathlib import Path
+
+import requests
+
+
+SCRIBE_URL = "https://api.elevenlabs.io/v1/speech-to-text"
+
+
+def load_api_key() -> str:
+    for candidate in [Path(__file__).resolve().parent.parent / ".env", Path(".env")]:
+        if candidate.exists():
+            for line in candidate.read_text().splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                if k.strip() == "ELEVENLABS_API_KEY":
+                    return v.strip().strip('"').strip("'")
+    v = os.environ.get("ELEVENLABS_API_KEY", "")
+    if not v:
+        sys.exit("ELEVENLABS_API_KEY not found in .env or environment")
+    return v
+
+
+def load_api_key_optional() -> str | None:
+    """Mesma busca, mas devolve None em vez de abortar — para o caminho degradável."""
+    for candidate in [Path(__file__).resolve().parent.parent / ".env", Path(".env")]:
+        if candidate.exists():
+            for line in candidate.read_text().splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                if k.strip() == "ELEVENLABS_API_KEY":
+                    val = v.strip().strip('"').strip("'")
+                    if val:
+                        return val
+    return os.environ.get("ELEVENLABS_API_KEY") or None
+
+
+# -------- Camada 2: Whisper local (Regra Dura 19) ---------------------------
+
+
+def transcribe_local(
+    audio_path: Path,
+    language: str | None = None,
+    model_size: str = "base",
+) -> dict:
+    """Transcreve com faster-whisper e devolve o MESMO formato do Scribe.
+
+    O que se perde em relação ao Scribe, e que o agente precisa saber:
+      - sem diarização: todo mundo vira o falante "S0"
+      - sem eventos de áudio ((laughs), (applause)) — o autocut perde esses sinais
+      - fillers normalizados: 'uh', 'né' somem do texto, então o autocut acha menos
+      - timestamps de palavra menos precisos (padding maior: use 100-150ms)
+
+    Continua sendo word-level verbatim, que é o mínimo inegociável (Regra Dura 8).
+    """
+    try:
+        from faster_whisper import WhisperModel
+    except ImportError:
+        raise RuntimeError(
+            "faster-whisper não instalado. Instale com:  pip install faster-whisper\n"
+            "Ou configure ELEVENLABS_API_KEY para usar o Scribe (melhor resultado)."
+        )
+
+    try:
+        model = WhisperModel(model_size, device="cpu", compute_type="int8")
+    except Exception as exc:
+        # O modelo é baixado do HuggingFace no primeiro uso. Em rede restrita
+        # isso estoura como um erro de proxy/TLS que não diz nada sobre vídeo.
+        raise RuntimeError(
+            f"não consegui carregar o modelo faster-whisper '{model_size}': {exc}\n"
+            f"  O modelo é baixado do HuggingFace no primeiro uso e fica em cache.\n"
+            f"  Se a rede bloqueia huggingface.co, as saídas são:\n"
+            f"    - baixar o modelo numa rede liberada (ele fica em ~/.cache/huggingface)\n"
+            f"    - apontar HF_HOME para um cache que já tenha o modelo\n"
+            f"    - usar o ElevenLabs Scribe: configure ELEVENLABS_API_KEY e rode "
+            f"--engine scribe"
+        ) from exc
+
+    segments, info = model.transcribe(
+        str(audio_path),
+        language=language,
+        word_timestamps=True,
+        vad_filter=True,
+        condition_on_previous_text=False,
+    )
+
+    words: list[dict] = []
+    full_text: list[str] = []
+    for seg in segments:
+        for w in (seg.words or []):
+            token = w.word.strip()
+            if not token:
+                continue
+            words.append({
+                "text": token,
+                "start": round(float(w.start), 3),
+                "end": round(float(w.end), 3),
+                "type": "word",
+                "speaker_id": "S0",
+                "logprob": round(float(getattr(w, "probability", 0.0)), 4),
+            })
+            full_text.append(token)
+
+    return {
+        "language_code": getattr(info, "language", language or "unknown"),
+        "language_probability": round(float(getattr(info, "language_probability", 0.0)), 4),
+        "text": " ".join(full_text),
+        "words": words,
+        "_engine": f"faster-whisper:{model_size}",
+        "_degraded": [
+            "sem diarização (todos os falantes viram S0)",
+            "sem eventos de áudio ((laughs), (applause))",
+            "fillers normalizados — autocut detecta menos",
+            "timestamps menos precisos — use padding de 100-150ms",
+        ],
+    }
+
+
+def count_audio_tracks(video_path: Path) -> int:
+    """How many audio streams the container holds."""
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "a",
+         "-show_entries", "stream=index", "-of", "csv=p=0", str(video_path)],
+        capture_output=True, text=True,
+    )
+    return len([ln for ln in out.stdout.splitlines() if ln.strip()])
+
+
+def peak_dbfs(wav_path: Path) -> float:
+    """Peak level of a 16-bit PCM wav, in dBFS. -inf for digital silence."""
+    peak = 0
+    with wave.open(str(wav_path), "rb") as w:
+        # A chunk at a time: batch mode runs several of these at once, and a two-hour
+        # take is 230 MB of 16 kHz mono before the array copy doubles it.
+        while frames := w.readframes(1 << 16):
+            samples = array.array("h", frames)
+            peak = max(peak, max(samples), -min(samples))
+    return 20 * math.log10(peak / 32768) if peak > 0 else float("-inf")
+
+
+def extract_audio(video_path: Path, dest: Path, audio_track: int = 0) -> None:
+    cmd = [
+        "ffmpeg", "-y", "-i", str(video_path),
+        "-map", f"0:a:{audio_track}",
+        "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le",
+        str(dest),
+    ]
+    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def call_scribe(
+    audio_path: Path,
+    api_key: str,
+    language: str | None = None,
+    num_speakers: int | None = None,
+) -> dict:
+    data: dict[str, str] = {
+        "model_id": "scribe_v1",
+        "diarize": "true",
+        "tag_audio_events": "true",
+        "timestamps_granularity": "word",
+    }
+    if language:
+        data["language_code"] = language
+    if num_speakers:
+        data["num_speakers"] = str(num_speakers)
+
+    with open(audio_path, "rb") as f:
+        resp = requests.post(
+            SCRIBE_URL,
+            headers={"xi-api-key": api_key},
+            files={"file": (audio_path.name, f, "audio/wav")},
+            data=data,
+            timeout=1800,
+        )
+
+    if resp.status_code != 200:
+        raise RuntimeError(f"Scribe returned {resp.status_code}: {resp.text[:500]}")
+
+    return resp.json()
+
+
+def transcript_path(edit_dir: Path, video: Path, audio_track: int = 0) -> Path:
+    """Where a video's transcript lands.
+
+    The track belongs in the name, or a rerun with --audio-track hands back the transcript of
+    the track it is meant to replace. Track 0 keeps the plain name, so transcripts made before
+    the flag existed stay valid. Batch mode tests its cache with this too — one function, so
+    the two cannot drift apart.
+    """
+    suffix = "" if audio_track == 0 else f".track{audio_track}"
+    return edit_dir / "transcripts" / f"{video.stem}{suffix}.json"
+
+
+def transcribe_one(
+    video: Path,
+    edit_dir: Path,
+    api_key: str | None,
+    language: str | None = None,
+    num_speakers: int | None = None,
+    verbose: bool = True,
+    audio_track: int = 0,
+    engine: str = "auto",
+    whisper_model: str = "base",
+) -> Path:
+    """Transcribe a single video. Returns path to transcript JSON.
+
+    Cached: returns existing path immediately if the transcript already exists.
+    """
+    transcripts_dir = edit_dir / "transcripts"
+    transcripts_dir.mkdir(parents=True, exist_ok=True)
+    out_path = transcript_path(edit_dir, video, audio_track)
+
+    if out_path.exists():
+        if verbose:
+            print(f"cached: {out_path.name}")
+        return out_path
+
+    if verbose:
+        print(f"  extracting audio from {video.name}", flush=True)
+
+    n_tracks = count_audio_tracks(video)
+    if n_tracks > 1 and verbose:
+        print(f"  note: {video.name} has {n_tracks} audio tracks, using track "
+              f"{audio_track + 1} (--audio-track to change)", flush=True)
+
+    t0 = time.time()
+    with tempfile.TemporaryDirectory() as tmp:
+        audio = Path(tmp) / f"{video.stem}.wav"
+        extract_audio(video, audio, audio_track)
+
+        # Uploading silence costs the same as uploading speech and returns
+        # nothing, so catch the wrong-track case before paying for it.
+        peak = peak_dbfs(audio)
+        if peak < -60.0:
+            raise RuntimeError(
+                f"track {audio_track + 1} of {video.name} is silent "
+                f"(peak {peak:.1f} dBFS) - not uploading. "
+                + (f"The file has {n_tracks} audio tracks; try --audio-track "
+                   + " or ".join(str(i) for i in range(n_tracks) if i != audio_track) + "."
+                   if n_tracks > 1 else "Check the source audio.")
+            )
+
+        size_mb = audio.stat().st_size / (1024 * 1024)
+
+        # Camadas: Scribe (melhor) → Whisper local → erro explícito.
+        # Regra Dura 19: degradar é permitido, degradar em silêncio não.
+        use_scribe = engine == "scribe" or (engine == "auto" and api_key)
+        if engine == "scribe" and not api_key:
+            raise RuntimeError("--engine scribe pedido mas ELEVENLABS_API_KEY não foi encontrada")
+
+        if use_scribe:
+            if verbose:
+                print(f"  uploading {video.stem}.wav ({size_mb:.1f} MB) → ElevenLabs Scribe", flush=True)
+            payload = call_scribe(audio, api_key, language, num_speakers)
+        else:
+            if verbose:
+                print(f"  ⚠ sem ELEVENLABS_API_KEY — transcrevendo local com "
+                      f"faster-whisper:{whisper_model}", flush=True)
+                print(f"    perde diarização, eventos de áudio e fillers; "
+                      f"timestamps menos precisos", flush=True)
+            payload = transcribe_local(audio, language=language, model_size=whisper_model)
+
+    out_path.write_text(json.dumps(payload, indent=2))
+    dt = time.time() - t0
+
+    if verbose:
+        kb = out_path.stat().st_size / 1024
+        print(f"  saved: {out_path.name} ({kb:.1f} KB) in {dt:.1f}s")
+        if isinstance(payload, dict) and "words" in payload:
+            print(f"    words: {len(payload['words'])}")
+
+    return out_path
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description="Transcribe a video with ElevenLabs Scribe")
+    ap.add_argument("video", type=Path, help="Path to video file")
+    ap.add_argument(
+        "--engine",
+        default="auto",
+        choices=["auto", "scribe", "local"],
+        help="auto = Scribe se houver chave, senão Whisper local (padrão)",
+    )
+    ap.add_argument(
+        "--whisper-model",
+        default="base",
+        choices=["tiny", "base", "small", "medium", "large-v3"],
+        help="Modelo do faster-whisper no caminho local (padrão: base)",
+    )
+    ap.add_argument(
+        "--edit-dir",
+        type=Path,
+        default=None,
+        help="Edit output directory (default: <video_parent>/edit)",
+    )
+    ap.add_argument(
+        "--language",
+        type=str,
+        default=None,
+        help="Optional ISO language code (e.g., 'en'). Omit to auto-detect.",
+    )
+    ap.add_argument(
+        "--num-speakers",
+        type=int,
+        default=None,
+        help="Optional number of speakers when known. Improves diarization accuracy.",
+    )
+    ap.add_argument(
+        "--audio-track",
+        type=int,
+        default=0,
+        help="Zero-based audio track to transcribe. OBS writes the game on track 0 "
+             "and the mic on track 1; without this ffmpeg applies its default audio "
+             "stream selection, which picks the track with the most channels.",
+    )
+    args = ap.parse_args()
+
+    video = args.video.resolve()
+    if not video.exists():
+        sys.exit(f"video not found: {video}")
+
+    edit_dir = (args.edit_dir or (video.parent / "edit")).resolve()
+    api_key = None if args.engine == "local" else load_api_key_optional()
+    if args.engine == "scribe" and not api_key:
+        sys.exit("ELEVENLABS_API_KEY not found in .env or environment (--engine scribe)")
+
+    transcribe_one(
+        video=video,
+        edit_dir=edit_dir,
+        api_key=api_key,
+        language=args.language,
+        num_speakers=args.num_speakers,
+        audio_track=args.audio_track,
+        engine=args.engine,
+        whisper_model=args.whisper_model,
+    )
+
+
+if __name__ == "__main__":
+    main()
