@@ -1,0 +1,32 @@
+[project]
+name = "manciasolutions-editor-de-video"
+version = "0.1.0"
+description = "Editor de vídeo conversacional para agentes de IA — fork da Mancia Solutions do video-use, com transcrição local, múltiplos formatos de saída, narração e trilha sonora."
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = [
+    "requests",
+    "librosa",
+    "matplotlib",
+    "pillow",
+    "numpy",
+]
+
+[project.optional-dependencies]
+# Motor de transcrição local (padrão). Pesado — só instale se for usar --engine local.
+local-transcription = [
+    "whisperx",
+    "torch",
+]
+# Diarização de falantes no motor local (opcional, precisa de HF_TOKEN também).
+diarization = [
+    "pyannote.audio",
+]
+animations = ["manim"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = []
