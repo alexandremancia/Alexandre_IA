@@ -106,11 +106,29 @@ def resolve_grade_filter(grade_field: str | None) -> str:
 
 
 def resolve_path(maybe_path: str, base: Path) -> Path:
-    """Resolve a path that may be absolute or relative to `base`."""
+    """Resolve a path that may be absolute or relative to `base`.
+
+    A relative path is tried against `base` (the edit dir) first, then against
+    `base.parent` (the videos dir). The second try exists because an EDL lives
+    in `<videos_dir>/edit/` but SKILL.md documents its `overlays[].file` and
+    `subtitles` entries in the `edit/animations/...` / `edit/master.srt` form —
+    i.e. relative to the videos dir, not to the EDL's own directory. Without
+    the fallback those documented paths resolve to `<videos_dir>/edit/edit/...`,
+    which crashes the overlay composite and silently drops subtitles.
+
+    If neither candidate exists, the `base`-relative one is returned so the
+    caller reports the path the EDL author most likely meant.
+    """
     p = Path(maybe_path)
     if p.is_absolute():
         return p
-    return (base / p).resolve()
+    primary = (base / p).resolve()
+    if primary.exists():
+        return primary
+    fallback = (base.parent / p).resolve()
+    if fallback.exists():
+        return fallback
+    return primary
 
 
 # -------- HDR → SDR tone mapping (HLG / PQ sources) --------------------------
@@ -826,8 +844,16 @@ def main() -> None:
         elif edl.get("subtitles"):
             subs_path = resolve_path(edl["subtitles"], edit_dir)
             if not subs_path.exists():
-                print(f"warning: subtitles path in EDL does not exist: {subs_path}")
-                subs_path = None
+                # Hard Rule 1 makes subtitles a correctness concern, so a
+                # missing file is fatal rather than a warning: continuing would
+                # quietly ship an uncaptioned render that looks successful.
+                # Pass --no-subtitles to skip them on purpose.
+                sys.exit(
+                    f"subtitles path in EDL does not exist: {subs_path}\n"
+                    f"  (EDL 'subtitles' was: {edl['subtitles']!r})\n"
+                    f"  Fix the path, or pass --build-subtitles to generate one "
+                    f"from transcripts/, or --no-subtitles to render without them."
+                )
 
     # 3b. Reframe filter, if a --format target was requested.
     reframe_filter: str | None = None

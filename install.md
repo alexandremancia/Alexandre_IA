@@ -35,7 +35,7 @@ E uma coisa precisa ser verdade sobre o agente atual:
 
 ```bash
 test -d ~/Developer/manciasolutions-editor-de-video || \
-  git clone <URL_DO_SEU_REPOSITORIO> ~/Developer/manciasolutions-editor-de-video
+  git clone https://github.com/alexandremancia/Alexandre_IA.git ~/Developer/manciasolutions-editor-de-video
 cd ~/Developer/manciasolutions-editor-de-video
 ```
 
