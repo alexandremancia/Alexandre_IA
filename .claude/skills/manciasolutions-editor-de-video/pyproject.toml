@@ -14,12 +14,12 @@ dependencies = [
 music = ["librosa"]
 # Auto-reframe seguindo rosto (sem isso, cai para energia de movimento).
 #
-# Sem pin de versão de propósito: as duas gerações funcionam, por caminhos
-# diferentes. O OpenCV 4.x traz Haar cascade dentro do wheel e roda sem mais
-# nada. O 5.x REMOVEU os cascades e só tem FaceDetectorYN (YuNet), melhor, mas
-# que precisa de um .onnx de ~232 KB baixado à parte — o reframe.py imprime o
-# comando quando falta. Prender em <5 evitaria esse passo ao custo de travar o
-# usuário numa major antiga.
+# Sem pin de versão de propósito: as duas gerações funcionam. O detector bom
+# (FaceDetectorYN / YuNet) existe nas duas desde o 4.5.4 e precisa de um .onnx
+# de ~232 KB baixado à parte — o reframe.py imprime o comando quando falta. O
+# Haar cascade, que vem dentro do wheel do 4.x e sumiu no 5.x, fica só como
+# reserva: no material de teste deste repo ele acerta 0/12 onde o YuNet acerta
+# 12/12.
 vision = ["opencv-python-headless"]
 # Transcrição local sem chave da ElevenLabs
 local-asr = ["faster-whisper"]

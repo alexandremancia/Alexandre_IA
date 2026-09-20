@@ -130,3 +130,99 @@ class TestAspectos:
     def test_dimensoes_de_saida_sao_pares(self):
         for ow, oh in reframe.OUT_SIZES.values():
             assert ow % 2 == 0 and oh % 2 == 0
+
+
+class TestOrdemDosDetectores:
+    """YuNet antes de Haar, por qualidade — não por versão do OpenCV.
+
+    Medido no material sintético deste repo: Haar acerta 0/12 amostras onde o
+    YuNet acerta 12/12. O `FaceDetectorYN` existe desde o OpenCV 4.5.4, então
+    prender o 4.x no Haar entregaria o detector ruim a quem já tem o bom.
+    """
+    import sys as _sys
+    import types as _types
+
+    def _fake_cv2(self, monkeypatch, *, yunet=True, haar=True, yunet_quebra=False,
+                  cascades_dir=None):
+        import sys, types
+        mod = types.ModuleType("cv2")
+        mod.__version__ = "4.14.0"
+
+        if yunet:
+            class FakeYN:
+                @staticmethod
+                def create(*a, **kw):
+                    if yunet_quebra:
+                        raise RuntimeError("Failed to parse ONNX model")
+                    inst = types.SimpleNamespace()
+                    inst.setInputSize = lambda *a: None
+                    inst.detect = lambda frame: (1, None)
+                    return inst
+            mod.FaceDetectorYN = FakeYN
+
+        if haar:
+            class FakeCascade:
+                def __init__(self, path):
+                    self._path = path
+
+                def empty(self):
+                    return False
+
+                def detectMultiScale(self, *a, **kw):
+                    return []
+
+            mod.CascadeClassifier = FakeCascade
+            mod.data = types.SimpleNamespace(haarcascades=str(cascades_dir))
+            mod.equalizeHist = lambda x: x
+            mod.cvtColor = lambda x, c: x
+            mod.COLOR_BGR2GRAY = 0
+
+        monkeypatch.setitem(sys.modules, "cv2", mod)
+        return mod
+
+    def _cascades(self, tmp_path):
+        d = tmp_path / "cascades"
+        d.mkdir()
+        for nome in ("haarcascade_frontalface_default.xml", "haarcascade_profileface.xml"):
+            (d / nome).write_text("<opencv_storage/>")
+        return d
+
+    def _modelo(self, tmp_path):
+        m = tmp_path / "yunet.onnx"
+        m.write_bytes(b"\x08\x01" * 64)
+        return m
+
+    def test_yunet_ganha_de_haar_quando_os_dois_existem(self, monkeypatch, tmp_path):
+        self._fake_cv2(monkeypatch, cascades_dir=self._cascades(tmp_path))
+        detect, motor = reframe.make_face_detector(self._modelo(tmp_path))
+        assert motor == "yunet"
+
+    def test_sem_modelo_cai_para_haar(self, monkeypatch, tmp_path):
+        self._fake_cv2(monkeypatch, cascades_dir=self._cascades(tmp_path))
+        detect, motor = reframe.make_face_detector(tmp_path / "ausente.onnx")
+        assert motor == "haar"
+
+    def test_opencv5_sem_modelo_explica_como_obter(self, monkeypatch, tmp_path):
+        self._fake_cv2(monkeypatch, haar=False)      # 5.x: sem cascades
+        detect, motivo = reframe.make_face_detector(tmp_path / "ausente.onnx")
+        assert detect is None
+        assert "curl" in motivo and "movimento" in motivo
+
+    def test_modelo_corrompido_nao_cai_calado(self, monkeypatch, tmp_path):
+        """Ponteiro LFS baixado no lugar do .onnx: o erro tem de nomear o arquivo."""
+        self._fake_cv2(monkeypatch, haar=False, yunet_quebra=True)
+        detect, motivo = reframe.make_face_detector(self._modelo(tmp_path))
+        assert detect is None
+        assert "não carregou" in motivo
+
+    def test_sem_opencv_nenhum(self, monkeypatch):
+        import sys
+        monkeypatch.setitem(sys.modules, "cv2", None)
+        detect, motivo = reframe.make_face_detector()
+        assert detect is None and motivo
+
+    def test_opencv_sem_api_de_rosto(self, monkeypatch):
+        self._fake_cv2(monkeypatch, yunet=False, haar=False)
+        detect, motivo = reframe.make_face_detector()
+        assert detect is None
+        assert "detecção de rosto" in motivo

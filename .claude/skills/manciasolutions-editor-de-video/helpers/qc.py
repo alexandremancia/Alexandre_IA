@@ -120,32 +120,86 @@ def read_window(path: Path, center: float, half: float = 0.06, sr: int = 48000):
     return y
 
 
-def pop_score(y) -> float:
-    """Maior salto amostra-a-amostra, em dBFS.
+def pop_score(y) -> tuple[float, int]:
+    """Assinatura de estalo: (pico do salto em dBFS, largura do pico em amostras).
 
-    Um corte limpo com fade de 30ms fica bem abaixo de -30 dBFS aqui. Um
-    estalo passa de -12 dBFS. É a assinatura de descontinuidade de forma de
-    onda, não de volume: música alta e bem cortada continua passando.
+    O nível do salto sozinho NÃO distingue estalo de conteúdo. Medido em ±60ms
+    numa emenda real:
+
+        corte com fade de 30ms   -42.7 dBFS, 2570 amostras no pico
+        corte seco (estalo)      -24.3 dBFS,    3 amostras
+        batida de bumbo           -4.0 dBFS,   16 amostras
+        transiente de fala       -19.2 dBFS,   33 amostras
+
+    O bumbo salta 20 dB MAIS que o estalo — um limiar por nível marcaria toda
+    música percussiva e deixaria o estalo passar. O que separa é a LARGURA:
+    estalo é um degrau de uma amostra (a forma de onda salta de um valor a
+    outro entre dois samples), enquanto qualquer transiente acústico sobe ao
+    longo de dezenas de amostras, porque tem envelope de ataque.
+
+    Largura = quantas amostras do sinal de diferença chegam a metade do pico.
     """
     import numpy as np
 
     if y is None or len(y) < 4:
-        return -120.0
+        return -120.0, 0
     d = np.abs(np.diff(y))
     peak = float(d.max())
-    return 20 * math.log10(peak) if peak > 0 else -120.0
+    if peak <= 0:
+        return -120.0, 0
+    width = int((d > peak * 0.5).sum())
+    return 20 * math.log10(peak), width
 
 
-def parse_ass_margin(sub_path: Path) -> int | None:
+def is_pop(peak_db: float, width: int, floor_db: float = -45.0,
+           max_width: int = 8) -> bool:
+    """Salto isolado o bastante para ser descontinuidade, e alto o bastante para se ouvir."""
+    return peak_db > floor_db and 0 < width <= max_width
+
+
+def parse_ass_geometry(sub_path: Path) -> tuple[int | None, int | None, int | None]:
+    """(MarginV, PlayResX, PlayResY) do .ass.
+
+    A margem só quer dizer alguma coisa em relação ao PlayResY: o captions.py
+    grava ali a resolução real da saída, então MarginV=346 num 1080x1920 é 18%
+    da altura — correto — enquanto o mesmo 346 num PlayResY=288 seria absurdo.
+    Comparar a margem com um número absoluto de pixels não diz nada.
+    """
+    margin = play_x = play_y = None
     for line in sub_path.read_text(errors="ignore").splitlines():
-        if line.startswith("Style:"):
+        if line.startswith("PlayResX:"):
+            try:
+                play_x = int(line.split(":", 1)[1].strip())
+            except ValueError:
+                pass
+        elif line.startswith("PlayResY:"):
+            try:
+                play_y = int(line.split(":", 1)[1].strip())
+            except ValueError:
+                pass
+        elif line.startswith("Style:") and margin is None:
             parts = [p.strip() for p in line.split(",")]
             if len(parts) >= 22:
                 try:
-                    return int(parts[21])
+                    margin = int(parts[21])
                 except ValueError:
-                    return None
-    return None
+                    pass
+    return margin, play_x, play_y
+
+
+# Fração mínima da altura a reservar embaixo, por aspecto. Espelha o
+# MARGIN_V_BY_ASPECT do captions.py, com folga: aqui é o piso do que passa,
+# não o alvo.
+MIN_MARGIN_PCT = {"vertical": 0.13, "quadrado": 0.07, "horizontal": 0.04}
+
+
+def min_margin_pct(play_x: int, play_y: int) -> tuple[float, str]:
+    ratio = play_x / play_y if play_y else 1.0
+    if ratio < 0.9:
+        return MIN_MARGIN_PCT["vertical"], "vertical"
+    if ratio < 1.2:
+        return MIN_MARGIN_PCT["quadrado"], "quadrado"
+    return MIN_MARGIN_PCT["horizontal"], "horizontal"
 
 
 def subtitle_times(sub_path: Path) -> list[tuple[float, float]]:
@@ -193,7 +247,9 @@ def check_caption_collision(edl: dict, edit_dir: Path, duration: float) -> list[
         return [Check("ok", "legenda × overlay", "sem overlays")]
 
     sub_windows = subtitle_times(sub_path)
-    margin = parse_ass_margin(sub_path) if sub_path.suffix.lower() == ".ass" else None
+    margin = play_x = play_y = None
+    if sub_path.suffix.lower() == ".ass":
+        margin, play_x, play_y = parse_ass_geometry(sub_path)
     checks = []
     risky = 0
     for ov in overlays:
@@ -216,9 +272,16 @@ def check_caption_collision(edl: dict, edit_dir: Path, duration: float) -> list[
             f"confirme visualmente que a legenda aparece por cima"))
     if not checks:
         checks.append(Check("ok", "legenda × overlay", f"{len(sub_windows)} janelas, sem conflito"))
-    if margin is not None and margin < 75:
-        checks.append(Check("warn", "safe-zone da legenda",
-                            f"MarginV={margin} — a UI de rede social corta abaixo de ~75"))
+    if margin is not None and play_y:
+        piso, forma = min_margin_pct(play_x or play_y, play_y)
+        pct = margin / play_y
+        if pct < piso:
+            checks.append(Check(
+                "warn", "safe-zone da legenda",
+                f"margem de {pct * 100:.0f}% da altura ({margin}px em {play_y}) — "
+                f"abaixo do piso de {piso * 100:.0f}% para {forma}"
+                + (". A UI de TikTok/Reels/Shorts cobre ~25-30% da base"
+                   if forma == "vertical" else "")))
     return checks
 
 
@@ -249,7 +312,10 @@ def main() -> None:
     ap.add_argument("--edit-dir", type=Path, default=None)
     ap.add_argument("--target", default=None, choices=list(TARGETS), help="Alvo de loudness")
     ap.add_argument("--expect-size", default=None, help="LARGURAxALTURA esperada, ex. 1080x1920")
-    ap.add_argument("--pop-threshold", type=float, default=-18.0, help="dBFS acima do qual a junção é estalo")
+    ap.add_argument("--pop-floor", type=float, default=-45.0,
+                    help="Abaixo deste nível o salto é inaudível e não conta")
+    ap.add_argument("--pop-max-width", type=int, default=8,
+                    help="Amostras no pico acima das quais o salto é transiente, não estalo")
     ap.add_argument("--duration-tolerance", type=float, default=0.5, help="Diferença tolerada de duração (s)")
     ap.add_argument("--no-frames", action="store_true", help="Não exporta PNGs das bordas")
     ap.add_argument("--strict", action="store_true", help="Sai com código 1 se houver qualquer aviso")
@@ -299,19 +365,23 @@ def main() -> None:
 
         # --- estalos nas junções ---
         if bounds and info.get("acodec"):
-            worst, worst_t, bad = -120.0, 0.0, 0
+            piores: list[tuple[float, float, int]] = []
             for b in bounds:
                 if b >= actual:
                     continue
-                score = pop_score(read_window(args.video, b))
-                if score > worst:
-                    worst, worst_t = score, b
-                if score > args.pop_threshold:
-                    bad += 1
-            level = "ok" if bad == 0 else "warn"
-            checks.append(Check(level, "estalo nas junções",
-                                f"{len(bounds)} junções, pior {worst:.1f} dBFS em {worst_t:.2f}s"
-                                + (f", {bad} acima do limiar" if bad else "")))
+                peak, width = pop_score(read_window(args.video, b))
+                if is_pop(peak, width, args.pop_floor, args.pop_max_width):
+                    piores.append((b, peak, width))
+            if piores:
+                b, peak, width = max(piores, key=lambda x: x[1])
+                checks.append(Check(
+                    "warn", "estalo nas junções",
+                    f"{len(piores)} de {len(bounds)} junções com salto isolado; "
+                    f"pior {peak:.1f} dBFS em {width} amostra(s) aos {b:.2f}s — "
+                    f"falta o fade de 30ms (Regra Dura 3)"))
+            else:
+                checks.append(Check("ok", "estalo nas junções",
+                                    f"{len(bounds)} junções, nenhuma descontinuidade isolada"))
     else:
         checks.append(Check("warn", "EDL", "não informado — duração e junções não verificadas"))
 

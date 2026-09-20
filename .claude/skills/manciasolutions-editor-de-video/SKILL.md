@@ -168,7 +168,14 @@ Detalhe: `.ass` carrega o próprio estilo, então o `render.py` usa o filtro `as
 Detecta o sujeito (rosto via OpenCV → energia de movimento → centro fixo), suaviza e recorta acompanhando.
 Três freios contra tremor (Regra Dura 15): média móvel (`--smooth-window`), zona morta (`--deadzone`) e limite de velocidade (`--max-speed`).
 
-**Detecção de rosto depende da versão do OpenCV.** O 4.x traz Haar cascade dentro do wheel e funciona sem mais nada. O 5.x **removeu os cascades**: só tem YuNet (DNN, melhor), que precisa de um `.onnx` de ~232 KB. Sem o modelo, o helper diz o comando exato para baixá-lo e segue por energia de movimento. Nunca baixe sozinho — é uma ação de rede que o usuário não pediu.
+**Detecção de rosto: baixe o modelo YuNet.** A ordem é YuNet → Haar → movimento, por qualidade e não por versão. O Haar vem dentro do wheel do OpenCV 4 (o 5 o removeu), mas foi treinado em fotografia e desaba fora dela — no material de teste deste repo ele acerta 0 de 12 amostras onde o YuNet acerta 12 de 12. O YuNet existe desde o OpenCV 4.5.4 e precisa de um `.onnx` de ~232 KB:
+
+```bash
+mkdir -p ~/.cache/manciasolutions && curl -L -o ~/.cache/manciasolutions/face_detection_yunet.onnx \
+  https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx
+```
+
+Tem de ser `media.githubusercontent.com`: o arquivo está em Git LFS, e a URL `/raw/` devolve o ponteiro de texto. O ponteiro baixa sem erro e só falha no parse do ONNX. Confira o tamanho (~232 KB). Sem o modelo, o helper diz o comando e segue por energia de movimento — nunca baixe sozinho, é ação de rede que o usuário não pediu.
 
 - Conteúdo com uma pessoa parada → `--static` costuma ser melhor que o rastreio. Câmera que não precisa se mexer não deve se mexer.
 - Duas pessoas alternando → rastreio com `--smooth-window 2.0` e `--max-speed 90`, ou split-screen (veja `references/transitions.md`).

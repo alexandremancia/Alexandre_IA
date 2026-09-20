@@ -87,19 +87,24 @@ print(f"  música (librosa)         {'✓' if has('librosa') else '—'}  BPM e 
 print(f"  ASR local (whisper)      {'✓' if has('faster_whisper') else '—'}  transcrição sem chave")
 print(f"  ASR completo (Scribe)    {'✓' if scribe_key() else '—'}  diarização + eventos de áudio + fillers")
 
-# O OpenCV 5 removeu os Haar cascades: sem o modelo YuNet, o reframe só segue
-# movimento. Vale dizer isso no install, não na primeira vez que o usuário
-# tentar reenquadrar um talking head.
+# O detector bom (YuNet) precisa de um .onnx à parte, nas DUAS gerações do
+# OpenCV. Sem ele o 5.x fica sem rosto nenhum e o 4.x cai no Haar, que acerta
+# 0/12 no material de teste onde o YuNet acerta 12/12. Melhor dizer isso aqui
+# do que na primeira vez que o usuário tentar reenquadrar um talking head.
 if has("cv2"):
     import cv2
     modelo = Path.home() / ".cache" / "manciasolutions" / "face_detection_yunet.onnx"
-    if not hasattr(cv2, "CascadeClassifier") and hasattr(cv2, "FaceDetectorYN") and not modelo.exists():
+    if hasattr(cv2, "FaceDetectorYN") and not modelo.exists():
+        reserva = ("cai no Haar, bem pior"
+                   if hasattr(cv2, "CascadeClassifier") else "fica só com movimento")
         print()
-        print(f"  Nota: OpenCV {getattr(cv2, '__version__', '5.x')} não traz Haar cascade.")
-        print(f"  Para rastrear ROSTO no reframe (em vez de só movimento):")
-        print(f"    mkdir -p {modelo.parent} && \\\\")
-        print(f"    curl -L -o {modelo} \\\\")
+        print(f"  Nota: o modelo YuNet não está em {modelo}.")
+        print(f"  Sem ele o reframe {reserva}. Para baixar (~232 KB):")
+        print(f"    mkdir -p {modelo.parent} && \\")
+        print(f"    curl -L -o {modelo} \\")
         print(f"      https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx")
+    elif modelo.exists():
+        print(f"  modelo YuNet             ✓  rastreio de rosto de qualidade")
 PYCHECK
 
 # 4. .env --------------------------------------------------------------------

@@ -84,12 +84,19 @@ YUNET_CACHE = Path.home() / ".cache" / "manciasolutions" / "face_detection_yunet
 def make_face_detector(model_path: Path | None = None):
     """Devolve (detectar, nome_do_motor) ou (None, motivo).
 
-    Duas APIs de OpenCV convivem no mundo real e é preciso suportar as duas:
+    Ordem: YuNet → Haar → nada. **Qualidade primeiro, não versão.**
 
-      - OpenCV 4.x: Haar cascade (`cv2.CascadeClassifier` + `cv2.data.haarcascades`).
-        Rápido, ruim com rosto de perfil e com pouca luz, mas vem dentro do wheel.
-      - OpenCV 5.x: os cascades foram REMOVIDOS. Sobrou `cv2.FaceDetectorYN`
-        (YuNet, uma DNN) — bem melhor, mas exige um arquivo .onnx separado.
+    Duas APIs convivem no mundo real:
+      - `cv2.FaceDetectorYN` (YuNet, uma DNN) existe desde o OpenCV 4.5.4 e é
+        a única opção no 5.x. Precisa de um .onnx de ~232 KB à parte.
+      - `cv2.CascadeClassifier` (Haar) vem dentro do wheel, mas foi REMOVIDO
+        no OpenCV 5.
+
+    O Haar não é só "um pouco pior": no mesmo material sintético deste repo ele
+    acerta 0 de 12 amostras onde o YuNet acerta 12 de 12. Ele foi treinado em
+    fotografia e desaba fora dela — rosto de perfil, pouca luz, material
+    estilizado. Por isso o YuNet vem primeiro mesmo no OpenCV 4, onde os dois
+    existem: quem baixou o modelo merece o detector bom.
 
     Sem nenhum dos dois, devolve None e quem chama cai para energia de movimento.
     """
@@ -98,8 +105,33 @@ def make_face_detector(model_path: Path | None = None):
     except ImportError:
         return None, "opencv não instalado"
 
-    # --- OpenCV 4.x: Haar ---
-    if hasattr(cv2, "CascadeClassifier") and hasattr(cv2, "data"):
+    tem_yunet = hasattr(cv2, "FaceDetectorYN")
+    tem_haar = hasattr(cv2, "CascadeClassifier") and hasattr(cv2, "data")
+    model = model_path or YUNET_CACHE
+
+    # --- 1ª escolha: YuNet ---
+    if tem_yunet and model.exists():
+        try:
+            detector = cv2.FaceDetectorYN.create(str(model), "", (320, 320), 0.6, 0.3, 5000)
+        except Exception as exc:
+            # Arquivo corrompido ou ponteiro LFS baixado como se fosse o modelo.
+            detector = None
+            erro_yunet = f"modelo YuNet em {model} não carregou ({exc})"
+        else:
+            def detect_yunet(frame_bgr):
+                h, w = frame_bgr.shape[:2]
+                detector.setInputSize((w, h))
+                _, faces = detector.detect(frame_bgr)
+                if faces is None or len(faces) == 0:
+                    return None
+                box = max(faces, key=lambda f: f[2] * f[3])
+                return float(box[0] + box[2] / 2), float(box[1] + box[3] / 2)
+            return detect_yunet, "yunet"
+    else:
+        erro_yunet = None
+
+    # --- 2ª escolha: Haar ---
+    if tem_haar:
         frontal = Path(cv2.data.haarcascades) / "haarcascade_frontalface_default.xml"
         profile = Path(cv2.data.haarcascades) / "haarcascade_profileface.xml"
         if frontal.exists():
@@ -117,29 +149,19 @@ def make_face_detector(model_path: Path | None = None):
                     return float(x + w / 2), float(y + h / 2)
                 return detect_haar, "haar"
 
-    # --- OpenCV 5.x: YuNet ---
-    if hasattr(cv2, "FaceDetectorYN"):
-        model = model_path or YUNET_CACHE
-        if not model.exists():
-            return None, (
-                f"OpenCV {getattr(cv2, '__version__', '5.x')} não traz Haar cascade e o "
-                f"modelo YuNet não está em {model}.\n"
-                f"    Para habilitar rastreio de rosto:\n"
-                f"      mkdir -p {model.parent} && curl -L -o {model} {YUNET_URL}\n"
-                f"    Sem ele, o reframe segue por energia de movimento."
-            )
-        detector = cv2.FaceDetectorYN.create(str(model), "", (320, 320), 0.6, 0.3, 5000)
-
-        def detect_yunet(frame_bgr):
-            h, w = frame_bgr.shape[:2]
-            detector.setInputSize((w, h))
-            _, faces = detector.detect(frame_bgr)
-            if faces is None or len(faces) == 0:
-                return None
-            box = max(faces, key=lambda f: f[2] * f[3])
-            return float(box[0] + box[2] / 2), float(box[1] + box[3] / 2)
-        return detect_yunet, "yunet"
-
+    # --- nada serviu: explique o que fazer ---
+    if erro_yunet:
+        return None, erro_yunet
+    if tem_yunet:
+        recado = (
+            f"o modelo YuNet não está em {model}.\n"
+            f"    Para habilitar rastreio de rosto:\n"
+            f"      mkdir -p {model.parent} && curl -L -o {model} {YUNET_URL}\n"
+            f"    Sem ele, o reframe segue por energia de movimento."
+        )
+        if tem_haar:
+            recado = "Haar indisponível e " + recado
+        return None, recado
     return None, "opencv sem API de detecção de rosto"
 
 
