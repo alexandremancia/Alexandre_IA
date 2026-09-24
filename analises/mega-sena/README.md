@@ -1,56 +1,80 @@
 # Análise de padrões na Mega-Sena
 
-Pergunta: **existe algum padrão nos números da Mega-Sena?**
+Duas perguntas, dois relatórios:
 
-O conteúdo está em [`RELATORIO.md`](RELATORIO.md). Esta pasta é o material que
-sustenta o relatório — dados, scripts e gráficos — para que qualquer afirmação
-lá possa ser refeita do zero.
+- [`RELATORIO.md`](RELATORIO.md) — **existe padrão nos números?** 26 testes sobre
+  frequência, repetição, atraso, soma, paridade, duplas e estratégias de aposta.
+- [`RELATORIO-TEMPORAL.md`](RELATORIO-TEMPORAL.md) — **existe padrão por ano,
+  semestre ou mês?** 19 testes sobre calendário, sazonalidade e tendência.
+
+Esta pasta é o material que sustenta os dois — dados, scripts e gráficos — para
+que qualquer afirmação possa ser refeita do zero.
 
 ## Como reproduzir
 
 ```bash
 pip install numpy scipy pandas matplotlib
 
-python3 scripts/consolidar_dados.py   # baixa e valida o histórico completo
-python3 scripts/analise.py            # roda os testes (≈15 min com 20.000 simulações)
-python3 scripts/graficos.py           # gera os gráficos do relatório
+python3 scripts/consolidar_dados.py    # baixa e valida o histórico completo
+python3 scripts/analise.py             # testes de padrão nos números (≈15 min)
+python3 scripts/analise_temporal.py    # testes de padrão por período (≈8 min)
+python3 scripts/graficos.py            # figuras do relatório principal
+python3 scripts/graficos_temporais.py  # figuras do relatório temporal
 ```
 
-`analise.py --sims 2000` roda em cerca de 1 minuto e serve para inspecionar; os
-p-valores de Monte Carlo ficam com menos precisão.
+Os dois scripts de análise aceitam `--sims N`. Com `--sims 2000` rodam em cerca
+de um minuto e servem para inspecionar; os p-valores de Monte Carlo ficam com
+menos precisão.
 
 ## Arquivos
 
 | Caminho | O que é |
 |---|---|
-| `scripts/consolidar_dados.py` | Baixa três fontes públicas, valida a sobreposição entre elas e grava o histórico consolidado |
-| `scripts/analise.py` | Os testes estatísticos. Cada um registra hipótese nula, estatística, p-valor e detalhe |
-| `scripts/graficos.py` | Os gráficos, sempre com a faixa do azar desenhada como referência |
+| `scripts/consolidar_dados.py` | Baixa quatro fontes públicas, valida as sobreposições entre elas e grava o histórico consolidado |
+| `scripts/analise.py` | Testes de padrão nos números. Cada um registra hipótese nula, estatística, p-valor e detalhe |
+| `scripts/analise_temporal.py` | Testes de padrão por ano, semestre, mês, dia da semana e data |
+| `scripts/graficos.py`, `scripts/graficos_temporais.py` | Os gráficos, sempre com a faixa do azar como referência |
 | `dados/megasena_consolidado.csv` | Um concurso por linha: número, data, as 6 dezenas e a ordem de sorteio quando conhecida |
-| `dados/resultados.json` | Saída completa da análise, incluindo os detalhes que não cabem no relatório |
-| `graficos/*.png` | Figuras do relatório |
+| `dados/resultados.json`, `dados/resultados_temporais.json` | Saída completa das análises, com os detalhes que não cabem nos relatórios |
+| `graficos/*.png` | Figuras dos relatórios |
 
 ## Sobre os dados
 
-Nenhuma fonte pública isolada cobre o histórico inteiro, então a consolidação
-usa três e **valida as faixas em que elas se sobrepõem** antes de aceitar
-qualquer coisa:
+Nenhuma fonte pública isolada cobre o histórico inteiro com datas, então a
+consolidação usa quatro e **valida todas as faixas em que elas se sobrepõem**
+antes de aceitar qualquer coisa. O script aborta se encontrar divergência nas
+dezenas ou nas datas, em vez de seguir com dado suspeito.
 
-- [guilhermeasn/loteria.json](https://github.com/guilhermeasn/loteria.json) — concursos 1 a 2797, dezenas na ordem de sorteio.
-- [neliobnjr/megasena](https://github.com/neliobnjr/megasena) — concursos 1 a 2365, com datas.
-- [OsJunnior/mega_sena](https://github.com/OsJunnior/mega_sena) — concursos 2551 a 3056, com datas.
+| Fonte | Cobertura | Papel |
+|---|---|---|
+| [guilhermeasn/loteria.json](https://github.com/guilhermeasn/loteria.json) | concursos 1–2797 | dezenas na ordem de sorteio |
+| [neliobnjr/megasena](https://github.com/neliobnjr/megasena) | 1–2365 | datas |
+| [gnai-creator/gerasena.com](https://github.com/gnai-creator/gerasena.com) | 1–2896 | datas e dezenas |
+| [OsJunnior/mega_sena](https://github.com/OsJunnior/mega_sena) | 2551–3056 | única fonte da ponta recente |
 
-2.612 concursos aparecem em mais de uma fonte e as dezenas batem em todos —
-zero divergência. O script aborta se encontrar qualquer discordância, em vez de
-seguir com dado suspeito.
+Conferência: 2.797 concursos com dezenas idênticas entre a primeira e a terceira
+fontes, 2.365 entre a primeira e a segunda, 247 entre a primeira e a quarta, e
+346 concursos com datas idênticas entre a terceira e a quarta. Uma única
+divergência de data apareceu, e está resolvida abaixo.
 
-Limitações conhecidas, que ficam registradas porque afetam o que se pode afirmar:
+### Limitações conhecidas
 
-- **Recorte**: concursos 1 a 3056 (11/03/1996 a 10/09/2026). Concursos posteriores
-  não entraram porque as fontes usadas não os publicavam quando a análise foi feita.
-- **185 concursos sem data** (2366 a 2550). Não afeta nenhum teste do relatório,
-  que são todos baseados na sequência de concursos, não no calendário.
+Ficam registradas porque afetam o que se pode afirmar:
+
+- **Recorte**: concursos 1 a 3056 (11/03/1996 a 10/09/2026). Concursos
+  posteriores não entraram porque as fontes usadas não os publicavam quando a
+  análise foi feita.
+- **Concurso 1754**: duas fontes discordam da data. `neliobnjr` diz 04/10/2015,
+  um domingo, quando só havia sorteio às quartas e aos sábados; `gerasena` diz
+  24/10/2015, um sábado, coerente com os vizinhos (1753 em 21/10, 1755 em
+  28/10). A consolidação adota 24/10/2015.
+- **Datas da ponta recente**: a partir do concurso 3033 (julho de 2026) só a
+  fonte `OsJunnior` publica as datas, e ela coloca o sorteio de sábado no
+  domingo seguinte, mantendo terça e quinta no lugar — quase certamente erro
+  dela. Por isso o teste de dia da semana para no concurso 2896. Ano e mês não
+  são afetados: um deslize de um dia quase nunca troca o mês.
 - **Ordem de sorteio** conhecida só até o concurso 2797. Os testes que usam a
-  ordem das bolas se restringem a essa faixa; os demais usam as dezenas ordenadas.
+  ordem das bolas se restringem a essa faixa; os demais usam as dezenas
+  ordenadas.
 - A API oficial da Caixa não era acessível no ambiente onde isto rodou, o que
   motivou o uso de fontes espelhadas com validação cruzada.

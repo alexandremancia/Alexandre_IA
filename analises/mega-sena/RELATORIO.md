@@ -234,6 +234,15 @@ funcionando bem. A ausência de padrão é a notícia boa.
 
 ---
 
+## E por ano, semestre ou mês?
+
+Essa pergunta tem relatório próprio: [`RELATORIO-TEMPORAL.md`](RELATORIO-TEMPORAL.md).
+São mais 19 testes recortando os mesmos concursos por ano, semestre, mês, dia da
+semana e dia do mês. Resultado ainda mais limpo que este: nenhum teste ficou
+abaixo de p = 0,05 nem antes da correção.
+
+---
+
 ## Todos os 26 testes
 
 | Teste | Estatística | p | Veredito |
