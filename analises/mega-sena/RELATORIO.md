@@ -241,6 +241,13 @@ São mais 19 testes recortando os mesmos concursos por ano, semestre, mês, dia 
 semana e dia do mês. Resultado ainda mais limpo que este: nenhum teste ficou
 abaixo de p = 0,05 nem antes da correção.
 
+## E a soma das dezenas?
+
+Também tem relatório próprio: [`RELATORIO-SOMA.md`](RELATORIO-SOMA.md). São mais
+20 testes sobre a distribuição da soma, a memória da série e os sistemas de
+fechamento por faixa de soma. A soma é o único lugar desta análise onde existe
+mesmo um padrão visível — o sino — e ele é completamente inútil para apostar.
+
 ---
 
 ## Todos os 26 testes

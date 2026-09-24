@@ -209,5 +209,8 @@ A única coisa que realmente mudou nesses trinta anos foi a frequência dos
 sorteios — de 43 por ano para 145. Isso muda quantas vezes você pode apostar,
 não a chance de cada aposta, que segue sendo uma em 50.063.860.
 
+Há ainda um terceiro recorte, sobre a soma das dezenas, em
+[`RELATORIO-SOMA.md`](RELATORIO-SOMA.md).
+
 Reprodução, dados e limitações em [`README.md`](README.md). Saída completa dos
 testes em [`dados/resultados_temporais.json`](dados/resultados_temporais.json).
