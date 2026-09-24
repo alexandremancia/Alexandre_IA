@@ -1,0 +1,1176 @@
+{
+  "meta": {
+    "n_concursos": 3056,
+    "dezenas_sorteadas": 18336,
+    "primeira_data": "1996-03-11",
+    "ultima_data": "2026-09-10",
+    "n_simulacoes": 20000
+  },
+  "frequencia": {
+    "contagens": {
+      "1": 299,
+      "2": 304,
+      "3": 282,
+      "4": 321,
+      "5": 332,
+      "6": 311,
+      "7": 285,
+      "8": 302,
+      "9": 292,
+      "10": 356,
+      "11": 324,
+      "12": 283,
+      "13": 313,
+      "14": 301,
+      "15": 275,
+      "16": 317,
+      "17": 325,
+      "18": 291,
+      "19": 295,
+      "20": 296,
+      "21": 260,
+      "22": 275,
+      "23": 320,
+      "24": 307,
+      "25": 300,
+      "26": 250,
+      "27": 328,
+      "28": 313,
+      "29": 300,
+      "30": 326,
+      "31": 284,
+      "32": 325,
+      "33": 327,
+      "34": 323,
+      "35": 322,
+      "36": 310,
+      "37": 329,
+      "38": 325,
+      "39": 293,
+      "40": 291,
+      "41": 311,
+      "42": 326,
+      "43": 323,
+      "44": 321,
+      "45": 299,
+      "46": 319,
+      "47": 292,
+      "48": 285,
+      "49": 311,
+      "50": 299,
+      "51": 309,
+      "52": 307,
+      "53": 347,
+      "54": 317,
+      "55": 263,
+      "56": 319,
+      "57": 288,
+      "58": 300,
+      "59": 292,
+      "60": 296
+    },
+    "esperado": 305.6,
+    "mais_sorteadas": [
+      [
+        10,
+        356
+      ],
+      [
+        53,
+        347
+      ],
+      [
+        5,
+        332
+      ],
+      [
+        37,
+        329
+      ],
+      [
+        27,
+        328
+      ],
+      [
+        33,
+        327
+      ],
+      [
+        42,
+        326
+      ],
+      [
+        30,
+        326
+      ],
+      [
+        32,
+        325
+      ],
+      [
+        17,
+        325
+      ]
+    ],
+    "menos_sorteadas": [
+      [
+        26,
+        250
+      ],
+      [
+        21,
+        260
+      ],
+      [
+        55,
+        263
+      ],
+      [
+        22,
+        275
+      ],
+      [
+        15,
+        275
+      ],
+      [
+        3,
+        282
+      ],
+      [
+        12,
+        283
+      ],
+      [
+        31,
+        284
+      ],
+      [
+        7,
+        285
+      ],
+      [
+        48,
+        285
+      ]
+    ],
+    "amplitude": 106,
+    "desvio_max_pct": 16.492146596858632,
+    "banda_azar_95_por_dezena": [
+      273.0,
+      338.0
+    ]
+  },
+  "diagnostico_frequencia": {
+    "desviantes_fdr": [
+      [
+        26,
+        250,
+        0.0006510948460108748
+      ]
+    ],
+    "menor_p_individual": 0.0006510948460108748,
+    "dezenas_no_mesmo_lado_nas_duas_metades": 30,
+    "esperado_mesmo_lado_por_azar": 30,
+    "top6_primeira_metade": [
+      4,
+      5,
+      33,
+      51,
+      53,
+      54
+    ],
+    "top6_segunda_metade": [
+      10,
+      11,
+      35,
+      38,
+      46,
+      53
+    ],
+    "top6_persistentes": [
+      53
+    ],
+    "bottom6_primeira_metade": [
+      9,
+      15,
+      21,
+      22,
+      26,
+      45
+    ],
+    "bottom6_segunda_metade": [
+      3,
+      12,
+      21,
+      26,
+      31,
+      55
+    ],
+    "bottom6_persistentes": [
+      21,
+      26
+    ],
+    "chi2_por_era": {
+      "historia_completa": {
+        "n_concursos": 3056,
+        "chi2": 79.89,
+        "p_assintotico": 0.0364
+      },
+      "primeira_metade": {
+        "n_concursos": 1528,
+        "chi2": 55.77,
+        "p_assintotico": 0.5953
+      },
+      "segunda_metade": {
+        "n_concursos": 1528,
+        "chi2": 94.25,
+        "p_assintotico": 0.0024
+      },
+      "ultimos_1000": {
+        "n_concursos": 1000,
+        "chi2": 78.1,
+        "p_assintotico": 0.0487
+      }
+    }
+  },
+  "ordem": {
+    "n_sorteios_com_ordem": 2797,
+    "media_por_posicao": [
+      30.604933857704683,
+      30.145870575616733,
+      30.66321058276725,
+      30.894529853414372,
+      30.515552377547372,
+      30.399356453342868
+    ]
+  },
+  "independencia": {
+    "repeticoes_observado": [
+      1586,
+      1190,
+      252,
+      25,
+      1,
+      1,
+      0
+    ],
+    "repeticoes_esperado": [
+      1576.0,
+      1157.9,
+      289.5,
+      30.3,
+      1.3,
+      0.0,
+      0.0
+    ],
+    "media_repeticoes": 0.5819967266775777,
+    "acf": [
+      -0.02,
+      -0.016,
+      -0.0302,
+      -0.0208,
+      0.0053,
+      0.0128,
+      0.0187,
+      -0.0116,
+      -0.0208,
+      0.001
+    ]
+  },
+  "atrasos": {
+    "media_intervalos": 9.971273801707158,
+    "maior_intervalo": 109,
+    "atraso_atual_top10": [
+      [
+        41,
+        44
+      ],
+      [
+        9,
+        36
+      ],
+      [
+        19,
+        30
+      ],
+      [
+        34,
+        29
+      ],
+      [
+        45,
+        26
+      ],
+      [
+        32,
+        25
+      ],
+      [
+        28,
+        22
+      ],
+      [
+        7,
+        21
+      ],
+      [
+        59,
+        21
+      ],
+      [
+        12,
+        20
+      ]
+    ]
+  },
+  "forma": {
+    "soma": {
+      "media": 183.17015706806282,
+      "dp": 39.90677974765719,
+      "min": 63,
+      "max": 331,
+      "media_teorica": 183.0,
+      "faixa_central_80": [
+        133.0,
+        234.0
+      ]
+    },
+    "paridade": {
+      "observado": [
+        40,
+        271,
+        730,
+        942,
+        744,
+        291,
+        38
+      ],
+      "esperado": [
+        36.2,
+        261.0,
+        727.7,
+        1006.2,
+        727.7,
+        261.0,
+        36.2
+      ]
+    },
+    "baixas_altas": {
+      "observado": [
+        29,
+        255,
+        767,
+        1037,
+        691,
+        243,
+        34
+      ],
+      "esperado": [
+        36.2,
+        261.0,
+        727.7,
+        1006.2,
+        727.7,
+        261.0,
+        36.2
+      ]
+    },
+    "faixas": [
+      3084,
+      3020,
+      2979,
+      3129,
+      3086,
+      3038
+    ],
+    "digito_final": [
+      1864,
+      1787,
+      1820,
+      1912,
+      1890,
+      1791,
+      1826,
+      1847,
+      1816,
+      1783
+    ],
+    "consecutivas": {
+      "observado": 1282,
+      "esperado": 1286.4
+    }
+  },
+  "duplas": {
+    "top_duplas": [
+      [
+        [
+          5,
+          27
+        ],
+        43
+      ],
+      [
+        [
+          36,
+          53
+        ],
+        42
+      ],
+      [
+        [
+          4,
+          52
+        ],
+        41
+      ],
+      [
+        [
+          38,
+          53
+        ],
+        41
+      ],
+      [
+        [
+          23,
+          53
+        ],
+        41
+      ],
+      [
+        [
+          6,
+          34
+        ],
+        40
+      ],
+      [
+        [
+          10,
+          33
+        ],
+        40
+      ],
+      [
+        [
+          41,
+          58
+        ],
+        40
+      ],
+      [
+        [
+          42,
+          49
+        ],
+        40
+      ],
+      [
+        [
+          5,
+          11
+        ],
+        40
+      ]
+    ],
+    "maior_contagem": 43,
+    "faixa_azar_95": [
+      41.0,
+      50.0
+    ]
+  },
+  "estabilidade": {
+    "correlacao_metades": 0.06730385725131457,
+    "p_correlacao": 0.6093884208592193
+  },
+  "backtest": {
+    "n_apostas": 2556,
+    "media_esperada": 0.6,
+    "estrategias": {
+      "quentes": {
+        "media_acertos": 0.5955,
+        "total_acertos": 1522,
+        "z": -0.326,
+        "distribuicao": [
+          1313,
+          990,
+          227,
+          26,
+          0,
+          0,
+          0
+        ]
+      },
+      "frios": {
+        "media_acertos": 0.5743,
+        "total_acertos": 1468,
+        "z": -1.846,
+        "distribuicao": [
+          1363,
+          936,
+          239,
+          18,
+          0,
+          0,
+          0
+        ]
+      },
+      "atrasados": {
+        "media_acertos": 0.5747,
+        "total_acertos": 1469,
+        "z": -1.818,
+        "distribuicao": [
+          1345,
+          981,
+          203,
+          26,
+          1,
+          0,
+          0
+        ]
+      },
+      "repete_ultimo": {
+        "media_acertos": 0.5833,
+        "total_acertos": 1491,
+        "z": -1.199,
+        "distribuicao": [
+          1321,
+          1002,
+          211,
+          21,
+          1,
+          0,
+          0
+        ]
+      },
+      "fixo_1a6": {
+        "media_acertos": 0.6099,
+        "total_acertos": 1559,
+        "z": 0.715,
+        "distribuicao": [
+          1304,
+          969,
+          259,
+          24,
+          0,
+          0,
+          0
+        ]
+      },
+      "aleatorio": {
+        "media_acertos": 0.6107,
+        "total_acertos": 1561,
+        "z": 0.771,
+        "distribuicao": [
+          1295,
+          992,
+          239,
+          29,
+          1,
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "janela_quente": {
+    "por_janela": {
+      "10": {
+        "media_acertos": 0.5794,
+        "z": -1.48
+      },
+      "20": {
+        "media_acertos": 0.5853,
+        "z": -1.058
+      },
+      "30": {
+        "media_acertos": 0.5955,
+        "z": -0.326
+      },
+      "50": {
+        "media_acertos": 0.6381,
+        "z": 2.74
+      },
+      "75": {
+        "media_acertos": 0.6373,
+        "z": 2.684
+      },
+      "100": {
+        "media_acertos": 0.6221,
+        "z": 1.587
+      },
+      "150": {
+        "media_acertos": 0.6072,
+        "z": 0.518
+      },
+      "200": {
+        "media_acertos": 0.6225,
+        "z": 1.615
+      },
+      "400": {
+        "media_acertos": 0.6107,
+        "z": 0.771
+      }
+    },
+    "validacao_fora_da_amostra": {
+      "primeira_metade": {
+        "n_apostas": 1278,
+        "media": 0.6487,
+        "z": 2.475
+      },
+      "segunda_metade": {
+        "n_apostas": 1278,
+        "media": 0.6275,
+        "z": 1.401
+      }
+    },
+    "melhor_janela": 50,
+    "z_max": 2.74,
+    "z_max_no_azar_medio": 1.21,
+    "z_max_no_azar_p95": 2.431
+  },
+  "multiplos_testes": {
+    "n_testes": 26,
+    "alfa": 0.05,
+    "esperado_falsos_positivos": 1.3,
+    "p_menor_005": [
+      "uniformidade_chi2",
+      "uniformidade_amplitude",
+      "janela_quente_melhor_de_9"
+    ],
+    "significativos_bonferroni": [],
+    "significativos_bh": []
+  },
+  "testes": [
+    {
+      "chave": "uniformidade_chi2",
+      "titulo": "Frequência das 60 dezenas é uniforme?",
+      "h0": "cada dezena tem probabilidade 6/60 em todo sorteio",
+      "estatistica": 79.89005235602092,
+      "p": 0.0095995200239988,
+      "veredito": "limítrofe (cai na correção de múltiplos testes)",
+      "detalhe": {
+        "p_chi2_assintotico": 0.03643326669129818,
+        "gl": 59,
+        "esperado_por_dezena": 305.6,
+        "chi2_medio_no_azar": 54.032545484293195,
+        "chi2_p95_no_azar": 71.41524869109948
+      }
+    },
+    {
+      "chave": "uniformidade_amplitude",
+      "titulo": "A diferença entre a dezena mais e a menos sorteada é grande demais?",
+      "h0": "a amplitude observada cabe no que o azar produz",
+      "estatistica": 106,
+      "p": 0.010249487525623718,
+      "veredito": "limítrofe (cai na correção de múltiplos testes)",
+      "detalhe": {
+        "amplitude_media_azar": 77.44595,
+        "amplitude_p95_azar": 96.0,
+        "faixa_azar_95": [
+          59.0,
+          100.0
+        ]
+      }
+    },
+    {
+      "chave": "dezenas_individuais_viciadas",
+      "titulo": "Alguma das 60 dezenas desvia além do aceitável, corrigindo os 60 testes?",
+      "h0": "nenhuma dezena tem probabilidade diferente de 1/10",
+      "estatistica": 1.0,
+      "p": null,
+      "veredito": "—",
+      "detalhe": {
+        "dezenas_desviantes_fdr5pct": [
+          [
+            26,
+            250,
+            0.0006510948460108748
+          ]
+        ],
+        "menor_p_entre_as_60": 0.0007,
+        "p_minimo_esperado_por_azar": "com 60 testes, o menor p tende a ~0,01 mesmo sem vício"
+      }
+    },
+    {
+      "chave": "ordem_primeira_bola",
+      "titulo": "A primeira bola sorteada favorece alguma dezena?",
+      "h0": "a 1ª bola é uniforme em 1..60",
+      "estatistica": 69.93600286020735,
+      "p": 0.15600089625357844,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "gl": 59,
+        "n_sorteios": 2797
+      }
+    },
+    {
+      "chave": "ordem_magnitude_posicao",
+      "titulo": "O valor da dezena depende da posição em que ela sai?",
+      "h0": "as 6 posições têm a mesma distribuição de valores",
+      "estatistica": 2.9742093991730254,
+      "p": 0.7039621654336196,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "media_por_posicao": [
+          30.604933857704683,
+          30.145870575616733,
+          30.66321058276725,
+          30.894529853414372,
+          30.515552377547372,
+          30.399356453342868
+        ]
+      }
+    },
+    {
+      "chave": "repeticao_concurso_anterior",
+      "titulo": "Dezenas do concurso anterior repetem mais (ou menos) que o azar prevê?",
+      "h0": "sorteios consecutivos são independentes (repetições ~ hipergeométrica)",
+      "estatistica": 7.060471466001135,
+      "p": 0.13272688521842535,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "gl": 4,
+        "observado": [
+          1586,
+          1190,
+          252,
+          25,
+          1,
+          1,
+          0
+        ],
+        "esperado": [
+          1576.0,
+          1157.9,
+          289.5,
+          30.3,
+          1.3,
+          0.0,
+          0.0
+        ],
+        "media_observada": 0.5819967266775777,
+        "media_teorica": 0.6
+      }
+    },
+    {
+      "chave": "recorrencia_dezena",
+      "titulo": "Sair num concurso muda a chance de sair no seguinte?",
+      "h0": "P(sair | saiu no anterior) = P(sair | não saiu no anterior)",
+      "estatistica": -0.0033339395041522696,
+      "p": 0.15556888622275544,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "p_dado_que_saiu": 0.09699945444626296,
+        "p_dado_que_nao_saiu": 0.10033339395041523,
+        "tabela_2x2": [
+          [
+            1778,
+            16552
+          ],
+          [
+            16552,
+            148418
+          ]
+        ]
+      }
+    },
+    {
+      "chave": "autocorrelacao_soma",
+      "titulo": "A soma das dezenas de um concurso prevê a do próximo?",
+      "h0": "somas são serialmente independentes (Ljung-Box, 10 defasagens)",
+      "estatistica": 9.527509326553018,
+      "p": 0.4828761654031044,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "acf_lags_1_a_10": [
+          -0.02,
+          -0.016,
+          -0.0302,
+          -0.0208,
+          0.0053,
+          0.0128,
+          0.0187,
+          -0.0116,
+          -0.0208,
+          0.001
+        ]
+      }
+    },
+    {
+      "chave": "runs_soma",
+      "titulo": "A soma alterna acima/abaixo da mediana em blocos (tendência)?",
+      "h0": "a sequência de sinais é aleatória (Wald-Wolfowitz)",
+      "estatistica": 0.9356546060467621,
+      "p": 0.34945104970720264,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "runs_observados": 1534,
+        "runs_esperados": 1508.3
+      }
+    },
+    {
+      "chave": "atraso_distribuicao",
+      "titulo": "O intervalo entre aparições segue a lei do azar?",
+      "h0": "intervalos ~ geométrica(p=0,1)",
+      "estatistica": 43.702468508658555,
+      "p": 0.27850528309051686,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "gl": 39,
+        "media_observada": 9.971273801707158,
+        "media_teorica": 10.0,
+        "maior_intervalo": 109
+      }
+    },
+    {
+      "chave": "atraso_maior_seca",
+      "titulo": "A maior seca de uma dezena é anormal?",
+      "h0": "a maior seca cabe no que o azar produz em 3.000 sorteios",
+      "estatistica": 109,
+      "p": 0.17427524158613794,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "maior_seca_media_azar": 98.685,
+        "faixa_azar_95": [
+          81.0,
+          126.02500000000009
+        ]
+      }
+    },
+    {
+      "chave": "soma_distribuicao",
+      "titulo": "A soma das 6 dezenas segue a distribuição teórica?",
+      "h0": "soma ~ distribuição exata de 6 dezenas distintas de 1..60",
+      "estatistica": 10.981599301431146,
+      "p": 0.4448061237234481,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "gl": 11,
+        "media_observada": 183.17015706806282,
+        "media_teorica": 183.0,
+        "dp_observado": 39.90677974765719,
+        "dp_teorico": 40.58324777540605
+      }
+    },
+    {
+      "chave": "paridade",
+      "titulo": "Equilíbrio entre pares e ímpares bate com a teoria?",
+      "h0": "a divisão segue a hipergeométrica (30 de cada lado)",
+      "estatistica": 8.784439231167749,
+      "p": 0.18606890666505754,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "gl": 6,
+        "observado": [
+          40,
+          271,
+          730,
+          942,
+          744,
+          291,
+          38
+        ],
+        "esperado": [
+          36.2,
+          261.0,
+          727.7,
+          1006.2,
+          727.7,
+          261.0,
+          36.2
+        ]
+      }
+    },
+    {
+      "chave": "baixas_altas",
+      "titulo": "Equilíbrio entre dezenas 1-30 e 31-60 bate com a teoria?",
+      "h0": "a divisão segue a hipergeométrica (30 de cada lado)",
+      "estatistica": 7.877222434132718,
+      "p": 0.24723704690164056,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "gl": 6,
+        "observado": [
+          29,
+          255,
+          767,
+          1037,
+          691,
+          243,
+          34
+        ],
+        "esperado": [
+          36.2,
+          261.0,
+          727.7,
+          1006.2,
+          727.7,
+          261.0,
+          36.2
+        ]
+      }
+    },
+    {
+      "chave": "faixas_dezenas",
+      "titulo": "As seis faixas (1-10, 11-20, ...) recebem a mesma fatia?",
+      "h0": "cada faixa concentra 1/6 das dezenas sorteadas",
+      "estatistica": 4.765052356020942,
+      "p": 0.44522112092881994,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "gl": 5,
+        "observado": [
+          3084,
+          3020,
+          2979,
+          3129,
+          3086,
+          3038
+        ],
+        "esperado": 3056.0
+      }
+    },
+    {
+      "chave": "digito_final",
+      "titulo": "Algum dígito final (terminação) sai mais?",
+      "h0": "os 10 dígitos finais são equiprováveis",
+      "estatistica": 9.56064572425829,
+      "p": 0.3872087382185773,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "gl": 9,
+        "observado": [
+          1864,
+          1787,
+          1820,
+          1912,
+          1890,
+          1791,
+          1826,
+          1847,
+          1816,
+          1783
+        ]
+      }
+    },
+    {
+      "chave": "consecutivas",
+      "titulo": "Sorteios com dezenas consecutivas (ex.: 24 e 25) são raros?",
+      "h0": "P(ao menos um par consecutivo) = 0.4209 (combinatória exata)",
+      "estatistica": -0.16162392453398788,
+      "p": 0.8716020159630415,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "observado": 1282,
+        "esperado": 1286.4,
+        "pct_observado": 41.95,
+        "pct_teorico": 42.09
+      }
+    },
+    {
+      "chave": "dupla_mais_frequente",
+      "titulo": "A dupla que mais saiu junto saiu demais?",
+      "h0": "a maior contagem de dupla cabe no que o azar produz",
+      "estatistica": 43,
+      "p": 0.8845577211394303,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "maior_contagem_media_azar": 44.8085,
+        "faixa_azar_95": [
+          41.0,
+          50.0
+        ],
+        "esperado_por_dupla": 25.9
+      }
+    },
+    {
+      "chave": "estabilidade_temporal",
+      "titulo": "As dezenas 'quentes' de uma época seguem quentes na seguinte?",
+      "h0": "a distribuição das dezenas é a mesma nas 4 eras",
+      "estatistica": 173.62732915417496,
+      "p": 0.5576081496453703,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "gl": 177,
+        "n_eras": 4
+      }
+    },
+    {
+      "chave": "correlacao_metades",
+      "titulo": "Frequência na 1ª metade da história prevê a da 2ª metade?",
+      "h0": "as frequências das duas metades não têm correlação",
+      "estatistica": 0.06730385725131457,
+      "p": 0.6093884208592193,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "n_primeira_metade": 1528,
+        "n_segunda_metade": 1528
+      }
+    },
+    {
+      "chave": "backtest_quentes",
+      "titulo": "A estratégia 'quentes' acerta mais que o azar?",
+      "h0": "média de acertos por aposta = 0,6 (nenhuma vantagem)",
+      "estatistica": -0.32636968362597396,
+      "p": 0.7441446718147893,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "media_acertos": 0.5955,
+        "total_acertos": 1522,
+        "distribuicao_acertos": [
+          1313,
+          990,
+          227,
+          26,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "chave": "backtest_frios",
+      "titulo": "A estratégia 'frios' acerta mais que o azar?",
+      "h0": "média de acertos por aposta = 0,6 (nenhuma vantagem)",
+      "estatistica": -1.8456768315400025,
+      "p": 0.06493914320089124,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "media_acertos": 0.5743,
+        "total_acertos": 1468,
+        "distribuicao_acertos": [
+          1363,
+          936,
+          239,
+          18,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "chave": "backtest_atrasados",
+      "titulo": "A estratégia 'atrasados' acerta mais que o azar?",
+      "h0": "média de acertos por aposta = 0,6 (nenhuma vantagem)",
+      "estatistica": -1.817541513986039,
+      "p": 0.06913423771428188,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "media_acertos": 0.5747,
+        "total_acertos": 1469,
+        "distribuicao_acertos": [
+          1345,
+          981,
+          203,
+          26,
+          1,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "chave": "backtest_repete_ultimo",
+      "titulo": "A estratégia 'repete_ultimo' acerta mais que o azar?",
+      "h0": "média de acertos por aposta = 0,6 (nenhuma vantagem)",
+      "estatistica": -1.1985645277988421,
+      "p": 0.23069731805827676,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "media_acertos": 0.5833,
+        "total_acertos": 1491,
+        "distribuicao_acertos": [
+          1321,
+          1002,
+          211,
+          21,
+          1,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "chave": "backtest_fixo_1a6",
+      "titulo": "A estratégia 'fixo_1a6' acerta mais que o azar?",
+      "h0": "média de acertos por aposta = 0,6 (nenhuma vantagem)",
+      "estatistica": 0.7146370658706752,
+      "p": 0.4748333349339867,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "media_acertos": 0.6099,
+        "total_acertos": 1559,
+        "distribuicao_acertos": [
+          1304,
+          969,
+          259,
+          24,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "chave": "backtest_aleatorio",
+      "titulo": "A estratégia 'aleatorio' acerta mais que o azar?",
+      "h0": "média de acertos por aposta = 0,6 (nenhuma vantagem)",
+      "estatistica": 0.7709077009786022,
+      "p": 0.4407616421820696,
+      "veredito": "compatível com azar",
+      "detalhe": {
+        "media_acertos": 0.6107,
+        "total_acertos": 1561,
+        "distribuicao_acertos": [
+          1295,
+          992,
+          239,
+          29,
+          1,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "chave": "janela_quente_melhor_de_9",
+      "titulo": "A melhor janela de 'dezenas quentes' vence o azar, descontada a busca?",
+      "h0": "nenhuma janela tem vantagem (nulo = máximo de 9 janelas em história aleatória)",
+      "estatistica": 2.74,
+      "p": 0.02448775612193903,
+      "veredito": "limítrofe (cai na correção de múltiplos testes)",
+      "detalhe": {
+        "melhor_janela": 50,
+        "z_por_janela": {
+          "10": -1.48,
+          "20": -1.058,
+          "30": -0.326,
+          "50": 2.74,
+          "75": 2.684,
+          "100": 1.587,
+          "150": 0.518,
+          "200": 1.615,
+          "400": 0.771
+        },
+        "z_max_medio_no_azar": 1.21,
+        "z_max_p95_no_azar": 2.431,
+        "nota": "o z de uma janela isolada parece significativo; o máximo entre as 9 janelas não é, porque o azar também produz máximos altos quando se testa 9 vezes",
+        "validacao_fora_da_amostra": {
+          "primeira_metade": {
+            "n_apostas": 1278,
+            "media": 0.6487,
+            "z": 2.475
+          },
+          "segunda_metade": {
+            "n_apostas": 1278,
+            "media": 0.6275,
+            "z": 1.401
+          }
+        }
+      }
+    }
+  ]
+}
