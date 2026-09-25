@@ -1,0 +1,5 @@
+# Dados exportados do Instagram e relatorios gerados a partir deles.
+# Contem nome e perfil de terceiros: fica so na maquina, nunca no GitHub.
+dados/
+export/
+*.zip

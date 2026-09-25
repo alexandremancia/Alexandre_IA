@@ -1,0 +1,48 @@
+/* TEMA DO @alexandremancia (perfil pessoal)
+   Direção "terminal quente", aprovada pelo Alexandre em 09/09/2026.
+
+   Este arquivo tem SÓ os tokens. O layout mora em
+   `identidade/instagram-layout.css`, na raiz do workspace, e é o mesmo do
+   perfil da marca: mesma grade, mesmos tamanhos, mesmo comportamento. O
+   que separa os dois perfis é o tema, nunca a estrutura.
+
+   Para mexer em posição, tamanho de fonte ou espaçamento, vá no layout, e
+   saiba que a mudança vale para os dois perfis. É essa a intenção. */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('../../../identidade/instagram-layout.css');
+
+:root {
+  /* fundo neutro: o cinza tem um toque de quente, nunca de azul.
+     É o que separa este perfil do azul-marinho da Mancia Solutions. */
+  --cor-fora: #08080a;
+  --cor-fundo: #0c0c0d;
+  --cor-fundo-alt: #131312;
+  --cor-superficie: #18181a;
+  --cor-superficie-2: #212023;
+  --cor-borda: rgba(255, 255, 255, 0.09);
+  --cor-borda-forte: rgba(255, 255, 255, 0.17);
+
+  --cor-texto: #f2efe9;
+  --cor-texto-suave: #a5a19a;
+  --cor-texto-tenue: #726e67;
+
+  /* inglês: 7,4:1 sobre o fundo, um degrau abaixo do texto principal */
+  --cor-en: #b6b1a8;
+
+  --cor-acento: #f5a524;
+  --cor-acento-hover: #ffbe4d;
+  --cor-acento-forte: #e08c00;
+  --cor-acento-linha: rgba(245, 165, 36, 0.62);
+  --acento-brilho: rgba(245, 165, 36, 0.30);
+  --acento-fundo: #1b1409;
+  --textura-linha: rgba(245, 165, 36, 0.055);
+
+  --fonte: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fonte-display: 'IBM Plex Sans', system-ui, sans-serif;
+  --fonte-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+}
+
+/* Grade, margem e espaçamento NÃO ficam aqui: moram no layout
+   compartilhado, porque são estrutura e não podem divergir entre os dois
+   perfis. Este arquivo é só o tema. */

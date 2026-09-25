@@ -1,0 +1,497 @@
+/* LAYOUT PADRÃO DE POST DE INSTAGRAM
+   Compartilhado pelos dois perfis. Definido pelo Alexandre em 09/09/2026,
+   depois de aprovar a peça do perfil pessoal: "mantenha esse layout como
+   padrão, só ajuste cor e fonte para a Mancia Solutions".
+
+   ESTE ARQUIVO NÃO TEM COR NEM FONTE PRÓPRIA. Tudo vem de variável, e cada
+   perfil define as suas no `base.css` da sua pasta:
+
+     AlexandreMancia-instagram/biblioteca/templates/base.css   (terminal quente)
+     ManciaSolutions-instagram/biblioteca/templates/base.css   (azul da marca)
+
+   Mexer aqui muda os dois perfis de uma vez. É essa a intenção: o layout é
+   o que faz um carrossel parecer uma peça só, e ele não deve divergir.
+   O que diferencia os perfis é o tema, nunca a estrutura.
+
+   Formato: 1080x1080, quadrado (regra de 09/09/2026).
+
+   Tokens que todo tema precisa definir:
+     --cor-fora --cor-fundo --cor-fundo-alt --cor-superficie
+     --cor-borda --cor-borda-forte
+     --cor-texto --cor-texto-suave --cor-texto-tenue --cor-en
+     --cor-acento --cor-acento-linha --acento-brilho --acento-fundo
+     --textura-linha
+     --fonte --fonte-display --fonte-mono
+     --raio --margem --margem-v
+     --y-numero --h-numero --y-kicker --y-titulo --h-titulo --y-regua --y-apoio */
+
+/* Grade e espaçamento moram AQUI, não no tema: são estrutura, e estrutura
+   não diverge entre perfis. O tema define só cor e fonte.
+
+   Cada elemento tem altura própria, igual em todas as peças. É isso que
+   faz o carrossel parecer uma coisa só quando a pessoa desliza: o olho
+   não reencontra nada, porque nada se moveu. */
+:root {
+  --margem: 84px;
+  --margem-v: 84px;
+  --raio: 8px;
+  --raio-grande: 14px;
+
+  --y-numero: 92px;
+  --h-numero: 184px;
+  --y-kicker: 276px;
+  --y-titulo: 330px;
+  --h-titulo: 400px;
+  --y-regua: 75%;        /* três quartos do alto: sobra um quarto embaixo */
+  --y-apoio: 26px;       /* distância da régua até o bloco de apoio */
+
+  /* TAMANHO DO TÍTULO (24/09/2026). Uma medida para a capa, uma para o
+     miolo, iguais em todo post dos dois perfis: título curto ou longo, o
+     tamanho não muda. Para ajustar, é só trocar estes dois números.
+     A escala é do tema, não daqui: fonte condensada precisa de corpo maior
+     para ter a mesma presença (a Big Shoulders usa 1.3). */
+  --titulo-capa: 84px;
+  --titulo-miolo: 76px;
+  --titulo-escala: 1;
+
+  /* TAMANHO DO TEXTO INFORMATIVO (24/09/2026), mesma lógica do título: um
+     número por papel, igual em todo post dos dois perfis. */
+  --texto-corpo: 36px;      /* parágrafo e item de lista, em português */
+  --texto-corpo-en: 28px;   /* a linha em inglês logo abaixo deles */
+  --texto-apoio: 40px;      /* frase de apoio, a de destaque abaixo da régua */
+  --texto-apoio-en: 30px;   /* e o inglês dela */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--cor-fora);
+  font-family: var(--fonte);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- slide ---------- */
+
+.slide {
+  position: relative;
+  width: 1080px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  margin: 0 auto 28px;
+}
+
+.slide--alt { background: var(--cor-fundo-alt); }
+
+.slide--acento {
+  background:
+    radial-gradient(88% 66% at 10% 2%, var(--acento-brilho), transparent 56%),
+    linear-gradient(172deg, var(--acento-fundo) 0%, var(--cor-fundo) 58%);
+}
+
+/* isolamento para o render: um slide por PNG */
+body.isolado .slide { display: none; }
+body.isolado .slide.alvo { display: block; margin: 0; }
+
+/* ---------- texturas ---------- */
+
+.slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* varredura: linhas de tubo */
+.textura-scan::after {
+  background-image: repeating-linear-gradient(
+    180deg, var(--textura-linha) 0 2px, transparent 2px 11px);
+  opacity: 0.75;
+}
+
+/* grade técnica */
+.textura-grade::after {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.030) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.030) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.7;
+}
+
+/* granulado fino, peso de papel */
+.textura-ruido::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23r)' opacity='0.4'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  opacity: 0.5;
+}
+
+/* ondas concêntricas: pulso e propagação */
+.textura-onda::after {
+  background-image: repeating-radial-gradient(
+    circle at 82% 12%, var(--textura-linha) 0 1px, transparent 1px 46px);
+  opacity: 0.7;
+}
+
+/* circuito */
+.textura-circuito::after {
+  background-image:
+    linear-gradient(var(--textura-linha) 1px, transparent 1px),
+    linear-gradient(90deg, var(--textura-linha) 1px, transparent 1px);
+  background-size: 120px 120px;
+  opacity: 0.55;
+}
+
+/* ---------- topo e contador ---------- */
+
+/* A arroba vive AQUI, na linha do contador, e não no pé (10/09/2026).
+   No pé ela caía na zona que o app do Instagram escurece e some. */
+.topo {
+  position: absolute;
+  top: var(--margem-v);
+  left: var(--margem);
+  right: var(--margem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--fonte-mono);
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  color: var(--cor-texto-tenue);
+}
+
+.topo__marca { color: var(--cor-texto-suave); }
+
+.contador {
+  font-family: var(--fonte-mono);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  color: var(--cor-texto-tenue);
+}
+
+/* ---------- corpo ---------- */
+
+/* Corpo flexível (10/09/2026), no lugar das âncoras fixas.
+
+   A régua deixou de morar numa altura fixa: ela é empurrada para baixo pelo
+   que sobra de espaço, então título fica no alto, régua e apoio no pé, e o
+   vão vazio se fecha sozinho. Isso preenche o quadrado, que é o que faz o
+   texto caber grande, e resolve o transbordo do card por cima do rodapé:
+   o bloco cresce para dentro do corpo, nunca por cima do que vem depois. */
+.corpo {
+  position: absolute;
+  top: calc(var(--margem-v) + 58px);
+  bottom: calc(var(--margem-v) + 42px);
+  left: var(--margem);
+  right: var(--margem);
+  display: flex;
+  flex-direction: column;
+}
+
+/* No último slide o selo ocupa o pé, então o corpo para antes dele. */
+.cta .corpo { bottom: calc(var(--margem-v) + 66px); }
+
+.kicker {
+  margin-bottom: 20px;
+  font-family: var(--fonte-mono);
+  font-size: 15px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  color: var(--cor-acento);
+}
+
+.kicker .en {
+  display: inline;
+  margin: 0;
+  font-family: var(--fonte-mono);
+  font-size: 15px;
+  color: var(--cor-texto-tenue);
+  letter-spacing: 0.24em;
+}
+
+/* O título não cresce: ocupa só a altura do próprio texto. */
+h1, h2 {
+  flex: 0 0 auto;
+  font-family: var(--fonte-display);
+  font-weight: 600;
+  letter-spacing: -0.022em;
+  /* Alinhado à esquerda, sem hifenização: o justificado por linha saiu em
+     24/09/2026 junto com o tamanho automático. */
+  text-align: left;
+  hyphens: none;
+}
+
+/* Tamanho fixo, vindo das variáveis do :root (24/09/2026). Até esta data o
+   isolar.js da Mancia esticava cada linha até as margens e fazia o corpo
+   crescer até a régua, e era isso que deixava um post com letra enorme e
+   outro com letra pequena. */
+h1 { font-size: calc(var(--titulo-capa) * var(--titulo-escala)); line-height: 1.03; letter-spacing: -0.034em; }
+h2 { font-size: calc(var(--titulo-miolo) * var(--titulo-escala)); line-height: 1.06; letter-spacing: -0.03em; }
+
+/* ---------- régua ---------- */
+
+/* margin-top: auto é o que empurra a régua e o apoio para o pé do slide,
+   fechando o vão que sobrava no meio. */
+.regua {
+  margin-top: 26px;
+  margin-bottom: 12px;
+  height: 1px;
+  background: linear-gradient(
+    90deg, var(--cor-acento-linha) 0%, var(--acento-brilho) 78%, transparent 100%);
+}
+
+/* ---------- base: o último quarto, abaixo da régua ----------
+   A régua não corta mais o meio da peça: ela marca os 75% e abre o quarto
+   de baixo, que é onde vive o texto de apoio. O bloco pendura a partir dela,
+   não se centraliza numa linha, para que texto mais longo cresça para baixo
+   sem subir por cima do título. */
+.base {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Corpo justificado, ocupando a linha inteira (regra do Alexandre,
+   09/09/2026, que revoga a exceção de 08/09 que deixava a arte alinhada à
+   esquerda). A coluna útil do slide tem 912px, o que dá cerca de 65
+   caracteres por linha no corpo: bem acima dos ~45 abaixo dos quais o
+   justificado abre rios. A hifenização entra para dar pontos de quebra, e
+   respeita o `lang` de cada bloco, português no HTML e inglês no `.en`. */
+p, .lista li {
+  font-size: var(--texto-corpo);
+  line-height: 1.42;
+  color: var(--cor-texto-suave);
+  text-align: justify;
+  text-align-last: left;
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 2;
+}
+
+.apoio { font-size: var(--texto-apoio); line-height: 1.3; color: var(--cor-texto); }
+
+.lista {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  counter-reset: item;
+}
+
+.lista li {
+  position: relative;
+  padding-left: 52px;
+  counter-increment: item;
+  color: var(--cor-texto);
+}
+
+.lista li::before {
+  content: counter(item, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 3px;
+  font-family: var(--fonte-mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--cor-acento);
+}
+
+.card {
+  padding: 24px 26px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-left: 2px solid var(--cor-acento);
+  border-radius: var(--raio);
+}
+
+/* ---------- inglês ----------
+   Regra de 09/09/2026: TODO texto visível é traduzido, não só o título.
+   O inglês nunca lidera e nunca aparece sozinho: vem sempre logo abaixo
+   do português, em corpo menor, num degrau claro de tamanho e de cor. */
+
+.en {
+  display: block;
+  font-family: var(--fonte);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--cor-en);
+  text-wrap: pretty;
+}
+
+/* O inglês de corpo acompanha o português e também é justificado. O do
+   título continua alinhado à esquerda: linha curta justificada piora. */
+p .en,
+.apoio .en,
+.lista li .en {
+  text-align: justify;
+  text-align-last: left;
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 2;
+}
+
+h1 .en, h2 .en, .kicker .en { text-align: left; hyphens: none; }
+
+h1 .en { margin-top: 20px; font-size: 34px; line-height: 1.22; font-weight: 400; letter-spacing: -0.01em; }
+h2 .en { margin-top: 16px; font-size: 28px; line-height: 1.26; font-weight: 400; letter-spacing: -0.008em; }
+.citacao h2 .en { font-size: 25px; }
+
+p .en,
+.apoio .en,
+.lista li .en {
+  margin-top: 9px;
+  font-size: var(--texto-corpo-en);
+  line-height: 1.38;
+}
+
+.apoio .en { font-size: var(--texto-apoio-en); line-height: 1.34; }
+
+/* ---------- número ---------- */
+
+.numero__cifra {
+  margin-bottom: 12px;
+  font-family: var(--fonte-display);
+  font-size: 112px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--cor-acento);
+}
+
+.numero__un {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--fonte-mono);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  color: var(--cor-texto-suave);
+}
+
+/* índice pequeno: posição de lista, nunca métrica */
+.numero__cifra.indice {
+  position: static;
+  height: auto;
+  margin-bottom: 14px;
+  font-size: 30px;
+  letter-spacing: 0;
+}
+
+/* ---------- citação ---------- */
+
+.aspas {
+  margin-bottom: 4px;
+  font-family: var(--fonte-display);
+  font-size: 108px;
+  font-weight: 700;
+  line-height: 0.6;
+  color: var(--cor-acento);
+  opacity: 0.38;
+}
+
+/* ---------- rodapé ---------- */
+
+.rodape {
+  position: absolute;
+  bottom: var(--margem-v);
+  left: var(--margem);
+  right: var(--margem);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  font-family: var(--fonte-mono);
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  color: var(--cor-texto-tenue);
+}
+
+.rodape__arrasta { color: var(--cor-acento); }
+
+/* ---------- selo, só no último slide ---------- */
+
+.selo {
+  position: absolute;
+  bottom: var(--margem-v);
+  left: var(--margem);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 22px 12px 16px;
+  background: rgba(0, 0, 0, 0.34);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: 999px;
+  font-family: var(--fonte-mono);
+  font-size: 16px;
+  letter-spacing: 0.10em;
+  color: var(--cor-texto);
+}
+
+.selo img { width: 26px; height: 26px; display: block; }
+
+
+/* ==========================================================================
+   PADRÃO DE 24/09/2026: centralizado, bilíngue em pares, bloco no centro
+   Aprovado pelo Alexandre para os dois perfis. Vence as regras acima onde
+   conflitam (é por isso que mora no fim do arquivo). Medidas e porquê na
+   tabela "Padrão aprovado" de
+   ManciaSolutions-instagram/biblioteca/identidade-instagram.md; exemplo de
+   referência em ManciaSolutions-instagram/biblioteca/testes/texto-2026-09-24/
+   e4-negrito-italico-cor/.
+
+   Cor e fonte continuam sendo do tema. Aqui só a forma: o português vem em
+   negrito na cor de texto do tema, o inglês em itálico na --cor-en do tema.
+   ========================================================================== */
+
+/* O bloco inteiro fica no centro da altura do quadrado, sem vão sobrando. */
+.corpo { justify-content: center; }
+
+/* Tudo centralizado: rótulo, título, inglês, texto e lista. */
+.kicker,
+h1, h2, h1 .en, h2 .en,
+p, p .en, .apoio, .apoio .en,
+.lista li, .lista li .en {
+  text-align: center;
+  text-align-last: center;
+  hyphens: none;
+}
+
+/* Exceção: o número de destaque ("2 minutos") fica à esquerda. */
+.numero__cifra, .numero__un { text-align: left; text-align-last: left; }
+.numero__cifra { margin-bottom: 0; }
+
+/* A régua some nas duas pontas, acompanhando o centro. */
+.regua {
+  margin-top: 30px;
+  margin-bottom: 20px;
+  background: linear-gradient(90deg, transparent 0%, var(--cor-acento-linha) 50%, transparent 100%);
+}
+
+/* Texto de baixo em pares: cada <p> é um trecho em português com a
+   tradução logo embaixo. O par é apertado; o espaço fica entre os pares. */
+.base, .lista { gap: 22px; }
+
+p, .apoio, .lista li {
+  line-height: 1.12;
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+p .en, .apoio .en, .lista li .en {
+  margin-top: -3px;
+  line-height: 1.12;
+}
+
+/* Inglês: mesma fonte do texto, em itálico, na cor de tradução do tema. */
+h1 .en, h2 .en, p .en, .apoio .en, .lista li .en {
+  font-family: var(--fonte);
+  font-style: italic;
+  font-weight: 400;
+}
+
+h1 .en, h2 .en { margin-top: 2px; }
+
+/* Lista centralizada: o número do item sobe para cima do texto. */
+.lista li { padding-left: 0; }
+.lista li::before { position: static; display: block; margin-bottom: 4px; }
+
